@@ -1,6 +1,6 @@
 # abap-coding-standards
 
-**ABAP 7.50 coding standards — a skill for AI coding agents.**
+**ABAP 7.50 coding standards — a skill for writing and reviewing classic ABAP code with AI agents.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/distherion/abap-coding-standards)](https://github.com/distherion/abap-coding-standards/releases)

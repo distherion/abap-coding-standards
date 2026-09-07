@@ -1,6 +1,6 @@
 ---
 name: abap-coding-standards
-description: Rules for working with ABAP 7.50 (SAP). Apply when editing .abap files, ABAP code, DDIC, infotypes, OData services, or when the user mentions ABAP/SAP. A dense checklist of coding standards, Open SQL, LUW and working with local files.
+description: Rules for writing and reviewing ABAP 7.50 (SAP) code. Apply when editing .abap files, ABAP code, DDIC, infotypes, OData services, or when the user mentions ABAP/SAP. A dense checklist of coding standards, Open SQL, LUW and working with local files.
 lang: en
 ---
 

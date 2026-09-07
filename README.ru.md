@@ -1,6 +1,6 @@
 # abap-coding-standards
 
-**Стандарты кодирования ABAP 7.50 — скилл для AI-агентов.**
+**Стандарты кодирования ABAP 7.50 — скилл для написания и ревью классического кода ABAP с помощью AI-агентов.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/distherion/abap-coding-standards)](https://github.com/distherion/abap-coding-standards/releases)
