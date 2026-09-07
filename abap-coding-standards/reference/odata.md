@@ -1,0 +1,36 @@
+# OData (SEGW / Gateway)
+
+> **[info]** The main part of this section — OData **v2** (the default in Gateway 7.40/7.50). OData **v4** also exists in 7.50 (SAP Gateway, SEGW with service type V4) — see "OData v4" below. RAP-style v4 (`@OData.publish: true`, XCO, CDS) — S/4HANA / ABAP Cloud, not classic 7.50.
+
+- **[P1]** Implement logic only in `*_DPC_EXT`/`*_MPC_EXT`. The base `*_DPC`/`*_MPC` are regenerated on every service regeneration in SEGW — code there is silently lost.
+- **[P2]** CRUD methods in `DPC_EXT`: `GET_ENTITYSET` (collection), `GET_ENTITY` (by key), `CREATE_ENTITY` (`io_data_provider->read_entry_data( IMPORTING es_data = ... )` → return `er_entity`), `UPDATE_ENTITY`, `DELETE_ENTITY`.
+- **[P3]** Do not create a Function Import named `Create*`/`Read*`/`Get*`/`Update*`/`Delete*` — a sign you need a normal entity set, not an action. Function Import — for non-CRUD actions (`approve`/`reject`/calculation), implemented in `EXECUTE_ACTION` (`iv_action_name` + `it_parameter`).
+- **[P2]** Related objects (header + items) in one request — `CREATE_DEEP_ENTITY` (`/IWBEP/IF_MGW_APPL_SRV_RUNTIME~create_deep_entity`); describe the deep type in `DEFINE` of `MPC_EXT`.
+- **[P2]** `$batch` changeset: redefine `CHANGESET_BEGIN` (set `CV_DEFER_MODE = abap_true`) + `CHANGESET_PROCESS`. In defer mode, individual `CREATE/UPDATE/DELETE` return no data/ETag until `CHANGESET_PROCESS` runs.
+- **[P2]** ETag/conditional requests: redefine `GET_IS_CONDITIONAL_IMPLEMENTED` (`rv_conditional_active`); in batch defer mode the auto ETag check runs before processing the operations.
+- **[P2]** Errors — business via `/IWBEP/CX_MGW_BUSI_EXCEPTION` (with `textid`/an SE91 message) + HTTP status, technical via `/IWBEP/CX_MGW_TECH_EXCEPTION`; not `MESSAGE` in the UI (see `classes.md`/`errors.md`: a class does not write to the UI).
+- **[P2]** Entity type — singular (`Customer`), entity set — plural (`Customers`) or `<Type>Set`; the navigation property name must not match the entity type/set name (a `$metadata` collision).
+- **[P3]** SEGW: technical name `Z_<desc>`; do not rename generated classes (`_MPC`/`_DPC`/`_MPC_EXT`/`_DPC_EXT`).
+- **[P3]** Properties: name and case — as in the data model; a description field — suffix `Name` (`CompanyName`), not `Desc`/`Descr`/`Text`.
+- **[P2]** `GET_ENTITY_SET` — one method per entity set, `CASE` — the dispatcher; narrow via `$filter`/`$select`/`$top`/`$skip`; related data — `$expand`, not `$batch`; make `$expand` "basic".
+- **[P2]** Optimized SADL `$expand` is enabled in `DPC_EXT`; with it `get_entity(set)` are not called — instead `get_expanded_entity(set)`. Works only if the getters are not redefined.
+- **[info]** Diagnostics/test: `/IWFND/GW_CLIENT` (manual CRUD), `/IWFND/TRACES` (call traces), `/IWFND/ERROR_LOG` (runtime errors), `/IWBEP/REG_SERVICE` (service registration); ICF node activation — in SICF.
+
+# OData v4
+
+> **[info]** In 7.50 v4 is available via SAP Gateway (SEGW, service type V4). The API is `edm`-style, namespace `/IWBEP/IF_V4_*`, differs from v2 (`/IWBEP/IF_MGW_*`). Do not mix: the v2 specifics above ($batch CHANGESET, ETag `GET_IS_CONDITIONAL_IMPLEMENTED`, `/IWBEP/CX_MGW_BUSI_EXCEPTION`) — not for v4.
+
+- **[P1]** Write v4 service classes yourself by inheriting from the standard ones, do not edit the generated ones: model (`$metadata`/EDMX) — a descendant of `/IWBEP/CL_V4_ABS_MODEL_PROV` (exactly `_PROV`), method `/IWBEP/IF_V4_MP_BASIC~DEFINE`; data (CRUD) — a descendant of `/IWBEP/CL_V4_ABS_DATA_PROVIDER` (implements `/IWBEP/IF_V4_DATA_PROVIDER` → `/IWBEP/IF_V4_DP_BASIC`/`DP_INTERMEDIATE`/`DP_ADVANCED`/`DP_BATCH`/`DP_PROCESS_STEPS`).
+- **[info]** Model: in `define`, add a private method per entity type/set (`define_*( io_model )` with `io_model TYPE REF TO /iwbep/if_v4_med_model`), not one big sheet. A common helper to "create an entity from a structure" (see below).
+- **[info]** Entity type from an ABAP structure: `io_model->create_entity_type_by_struct( iv_entity_type_name, is_structure, iv_gen_prim_props = abap_true ... )` (auto-generates primitive properties from the structure fields); `->create_entity_set( iv_entity_set_name )`; `->set_edm_name( ... )` for both type and set. Key — `get_primitive_property( '<field>' )->set_is_key( )`.
+- **[info]** Fine-tuning a field type: `lo_entity_type->get_primitive_property( '<field>' )->set_edm_type( /iwbep/if_v4_med_element=>gcs_edm_data_types-decimal )->set_precision( 15 )->set_scale( 3 )` (or `...-boolean` for `abap_bool`/flags where the auto-mapping did not guess).
+- **[info]** Navigation property: `lo_entity_type->create_navigation_property( iv_internal_name )` → `->set_target_entity_type_name( )`, `->set_target_multiplicity( /iwbep/if_v4_med_element=>gcs_med_nav_multiplicity-to_many_optional )`, `->set_edm_name( )`; binding to the target set — `lo_entity_set->add_navigation_prop_binding( iv_navigation_property_path, iv_target_entity_set )`.
+- **[P2]** CRUD in the data provider — redefine on `/IWBEP/IF_V4_DP_BASIC`: `read_entity_list` (collection), `read_entity` (by key), `create_entity`, `update_entity`, `delete_entity`, `execute_function` (action). `DP_ADVANCED`/`DP_INTERMEDIATE` — only when an advanced/deep/tree scenario is needed.
+- **[P2]** Dispatch: `io_request->get_entity_set( )`/`get_entity_type( )` → `CASE` by name; `WHEN OTHERS` → call super (`/iwbep/if_v4_dp_basic~create_entity( io_request = ... io_response = ... )`), do not raise "not implemented" yourself.
+- **[P2]** To-do flags: `io_request->get_todos( IMPORTING es_todo_list = ls_todo_list )`. Process data only if `ls_todo_list-process-busi_data = abap_true`; return `io_response->set_busi_data( ls_data )` only if `ls_todo_list-return-busi_data = abap_true`. At the end always `io_response->set_is_done( ls_todo_list-process )` — otherwise the framework "not implemented".
+- **[info]** Data in/out: `io_request->get_busi_data( IMPORTING es_busi_data = ... )`, `get_key_data( )`, `get_selected_properties( )`, `get_filter_props_with_ranges( )`/`get_filter_ranges_for_prop( )`, `get_expand_tree_list( )`, `get_parameter_data( )` (for an action); output — `io_response->set_busi_data( )`, `set_count( )`, `set_target_key_data( )`.
+- **[info]** Deep-insert: `io_request->get_data_description_tree_list( IMPORTING et_data_desc_root_node = lt_stack )`, walk via `get_children( )`, on each node `get_todos( )` + `set_is_done( )`.
+- **[P2]** Errors: `CATCH /iwbep/cx_gateway`; messages — `/iwbep/cl_v4_message_container` (`get_messages( IMPORTING et_message )`, `add_exception( io_exception, iv_msg_type, iv_is_for_user )`, `has_leading_message_for_user( )`). Propagate further: `RAISE EXCEPTION TYPE /iwbep/cx_gateway EXPORTING http_status_code = ... message_container = ... is_for_user = abap_true.` (not `/IWBEP/CX_MGW_BUSI_EXCEPTION` — that is v2).
+- **[info]** `$batch`/changeset in v4 — via the interface `/IWBEP/IF_V4_DP_BATCH`, not `CHANGESET_BEGIN/PROCESS` from v2.
+- **[info]** Registering a v4 service — `/IWBEP/V4_MAP` (mapping service ↔ classes), not `/IWBEP/REG_SERVICE` (that is for v2).
+- **[P2]** Do not invent v4 (`edm`) annotations in the model provider — verify the name/type against the `/IWBEP/` doc or a generated SEGW service (see "Finding sources" in SKILL.md).
