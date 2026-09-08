@@ -107,7 +107,9 @@ abap-coding-standards/
         ├── style.md         # language and style, names, booleans, formatting
         ├── odata.md         # OData (SEGW / Gateway)
         ├── files-io.md      # file I/O (DATASET, gui_upload/download, encodings, JSON/XML)
-        ├── integration.md   # batch input (BDC), memory, BAdI
+        ├── integration.md   # batch input (BDC), memory, BAdI, RFC/HTTP
+        ├── ddic.md          # ABAP Dictionary: table keys, buffering, append structures, domains/DE
+        ├── alv.md           # output with ALV (SAP List Viewer), classic lists
         └── local-editing.md # local editing of .abap files (encoding, block balance)
 ```
 
@@ -125,6 +127,7 @@ The rules are distilled from the sources below. Links are kept here only — the
 - [SAP/code-pal-for-abap](https://github.com/SAP/code-pal-for-abap) — Clean ABAP checks in SCI/ATC
 - [larshp/abapOpenChecks](https://github.com/larshp/abapOpenChecks) — open SCI/ATC checks (7.40 SP02+)
 - [abaplint/abaplint](https://github.com/abaplint/abaplint) · [rules.abaplint.org](https://rules.abaplint.org) — linter for abapGit repos
+- [abapGit/abapGit](https://github.com/abapGit/abapGit) — Git client for ABAP; basis of `reference/local-editing.md` and of the abapGit serialization that abaplint/SonarQube read in CI
 
 **Learning material**
 

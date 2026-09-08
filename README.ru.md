@@ -107,7 +107,9 @@ abap-coding-standards/
         ├── style.md         # язык и стиль, имена, булевы, форматирование
         ├── odata.md         # OData (SEGW / Gateway)
         ├── files-io.md      # файловый I/O (DATASET, gui_upload/download, кодировки, JSON/XML)
-        ├── integration.md   # batch input (BDC), память, BAdI
+        ├── integration.md   # batch input (BDC), память, BAdI, RFC/HTTP
+        ├── ddic.md          # словарь данных: ключи таблиц, буферизация, append-структуры, домены/DE
+        ├── alv.md           # вывод через ALV (SAP List Viewer), классические списки
         └── local-editing.md # локальное редактирование .abap (кодировки, баланс блоков)
 ```
 
@@ -125,6 +127,7 @@ abap-coding-standards/
 - [SAP/code-pal-for-abap](https://github.com/SAP/code-pal-for-abap) — проверки Clean ABAP в SCI/ATC
 - [larshp/abapOpenChecks](https://github.com/larshp/abapOpenChecks) — открытые проверки SCI/ATC (7.40 SP02+)
 - [abaplint/abaplint](https://github.com/abaplint/abaplint) · [rules.abaplint.org](https://rules.abaplint.org) — линтер для репозиториев abapGit
+- [abapGit/abapGit](https://github.com/abapGit/abapGit) — Git-клиент для ABAP; основа `reference/local-editing.md` и abapGit-сериализации, которую читают abaplint/SonarQube в CI
 
 **Обучающие материалы**
 
