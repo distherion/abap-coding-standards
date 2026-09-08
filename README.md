@@ -125,6 +125,7 @@ The rules are distilled from the sources below. Links are kept here only — the
 **Static analysis & tooling**
 
 - [SAP/code-pal-for-abap](https://github.com/SAP/code-pal-for-abap) — Clean ABAP checks in SCI/ATC
+- [SAP/abap-cleaner](https://github.com/SAP/abap-cleaner) — ADT cleanup rules (100+ checks); source of the chaining, obsolete-statement and formatting rules in `style.md`/`data.md`/`classes.md`
 - [larshp/abapOpenChecks](https://github.com/larshp/abapOpenChecks) — open SCI/ATC checks (7.40 SP02+)
 - [abaplint/abaplint](https://github.com/abaplint/abaplint) · [rules.abaplint.org](https://rules.abaplint.org) — linter for abapGit repos
 - [abapGit/abapGit](https://github.com/abapGit/abapGit) — Git client for ABAP; basis of `reference/local-editing.md` and of the abapGit serialization that abaplint/SonarQube read in CI

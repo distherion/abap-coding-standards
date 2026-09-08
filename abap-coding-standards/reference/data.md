@@ -25,6 +25,7 @@
 - **[P1]** Inline `DATA(x) = lv_packed + 1` with a `p` operand gives `p LENGTH 8 DECIMALS 0` — the fraction is lost. For fractions declare the type explicitly: `DATA(x) TYPE p LENGTH 8 DECIMALS 2`.
 - **[P1]** `EXACT` on digit loss: `CX_SY_CONVERSION_ROUNDING` (fraction/digits lost), `CX_SY_CONVERSION_OVERFLOW` (overflow) — catch it or guarantee the range.
 - **[info]** Rounding: `round( val = ... dec = ... [mode = ...] )`, `ceil`/`floor`/`trunc`/`frac`; `nmin`/`nmax` — min/max of arguments; `cl_abap_math` — numeric limits (`min_*`/`max_*` per type, e.g. `cl_abap_math=>min_int4`, `=>max_decfloat34`); the mathematical constants `pi`/`e` are **not** in the 7.50 class — use `acos( -1 )`.
+- **[P3]** No `ADD`/`SUBTRACT`/`MULTIPLY`/`DIVIDE` (`ADD … CARRYING` silently updates a second variable) — write an arithmetic assignment `lv_x = lv_x + lv_n`; computed assignments `+=`/`-=`/`*=`/`/=` — only from 7.54 (see `style.md`).
 
 # Date and time
 
@@ -46,6 +47,7 @@
 - **[P2]** Shadowed variable: a local (`lv_*`/`DATA(x)`) named like an attribute/global hides it — the wrong one is read. Do not name locals like attributes.
 - **[P2]** Do not use `sy-sysid`/`sy-sysuuid`/`sy-host` in business logic (ties to system/host). Identifiers — via configuration/constants.
 - **[P3]** Initialization with a named type: `DATA(lv_x) = VALUE ty_type( ).` instead of `DATA lv_x TYPE ty_type.`; anonymous types (`TABLE OF … WITH KEY`, `WITH DEFAULT KEY`) cannot be declared inline — use `TYPE` there.
+- **[P3]** No obsolete short declaration forms: `DATA lv_x.` is implicitly `c LENGTH 1`, `TYPES: t1, t2 TYPE p.` — implicitly `c`/standard lengths. Specify `TYPE`/`LENGTH`/`DECIMALS` explicitly (ABAPDocu "TYPES - implicit", obsolete language elements).
 - **[P3]** `INSERT INTO TABLE` — when uniqueness matters (`SORTED`/`HASHED`): a duplicate of the **primary key** — `sy-subrc = 4` (also: `sy-tabix` is not set); a duplicate of a **unique secondary key** — handleable exception `CX_SY_ITAB_DUPLICATE_KEY` (handle it or the program aborts); `INSERT` of a block where any row would duplicate — runtime error, not `sy-subrc`. `APPEND` — for `STANDARD` (insertion order, duplicates allowed). `line_exists()` instead of `READ TABLE … NO FIELDS`; `LOOP AT … WHERE` instead of a nested `IF`.
 - **[info]** `REF #( )` instead of `GET REFERENCE OF` for data references.
 - **[P3]** `MOVE-CORRESPONDING` → `CORRESPONDING #( ... )`: explicit `MAPPING`/`EXCEPT`, the contract is visible, safer when the structure changes.
@@ -61,6 +63,7 @@
 - **[P3]** A missing row is normal: `VALUE #( itab[ key ] OPTIONAL )` (no row → `IS INITIAL`) or `VALUE #( itab[ key ] DEFAULT ls_dflt )` instead of `TRY`/`CATCH cx_sy_itab_line_not_found`.
 - **[P2]** No double read: not `line_exists( )` + a repeated `READ`. If the row must exist — `TRY` + `CATCH cx_sy_itab_line_not_found` and your own exception.
 - **[P2]** `sy-tabix` is set only by `READ TABLE`/`LOOP AT` (and a few index statements); `DELETE` does **not** set it; after `ENDLOOP` its previous value is restored; a `READ` by hash key sets 0, an unsuccessful binary search may set the insertion position. Do not read `sy-tabix` after arbitrary statements over the table — save the index to a local variable before changes.
+- **[P3]** `DESCRIBE TABLE itab LINES lv` → `lv = lines( itab )`; a "does the row exist" check without `sy-subrc`/`sy-tabix` side effects → `line_exists( itab[ ... ] )`; the index of a row → `line_index( itab[ ... ] )` (built-in table functions, 7.40+).
 - **[P2]** Nested `LOOP AT` over two internal tables (searching the second's row for each first) — O(n²): move the read to `READ TABLE … WITH KEY`/`itab[ key ]`, or build an index table in one pass (`key → sy-tabix`).
 - **[P3]** Grouping — `LOOP AT itab INTO ... GROUP BY ...` + `LOOP AT GROUP` (7.40+), not control-level `AT NEW`/`AT END OF` (those require a pre-`SORT`, non-obvious).
 - **[P2]** Reading a row — always `ASSIGNING <fs>` (or `REFERENCE INTO`/`itab[ key ]`): no copy, editing `<fs>` edits the table. `INTO data(ls)` — only when a copy is exactly what you need (mutating separately from the table). `READ TABLE ... INTO <fs>` is forbidden — writes under the field-symbol instead of reassigning.

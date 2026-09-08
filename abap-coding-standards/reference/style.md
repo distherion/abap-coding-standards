@@ -5,7 +5,7 @@
 - **[P3]** Functional constructs: `DATA(...)`, `VALUE #()`, `CORRESPONDING #()`, `NEW`, `COND`, `SWITCH`, `REDUCE`.
 - **[P3]** **No mixing of equivalent spellings** — pick one alternative per construct and use it consistently (comparison operators `=`/`<>` vs `EQ`/`NE`; modern vs legacy statement variants, see the next bullet).
 - **[P3]** **No obsolete statements** — where 7.50 has a modern replacement, use it (ABAPDocu "Obsolete Language Elements", Clean ABAP). Concrete replacements — in this section (`MOVE` → `=`, `CREATE OBJECT` → `NEW`), in `data.md` (`REFRESH` → `CLEAR`, `MOVE-CORRESPONDING`, `TABLES`/`NODES`/`WITH HEADER LINE`) and `open-sql.md` (unescaped host variables).
-- **[P3]** **Strings/operators**: templates `|...|` and `&&` instead of `CONCATENATE`/`STRING`; `MOVE` → `=`, `TRANSLATE` → `to_upper`/`to_lower`; `#EC` → pragmas `##` where the check has one (`##NO_TEXT`, `##INCLUDED`, …); keep the legacy `#EC CI_*` pseudo-comment for cross-statement checks that still have no `##` equivalent in 7.50.
+- **[P3]** **Strings/operators**: templates `|...|` and `&&` instead of `CONCATENATE`/`STRING`; `MOVE` → `=`, `TRANSLATE` → `to_upper`/`to_lower`, `CONDENSE` → `condense( )`; `#EC` → pragmas `##` where the check has one (`##NO_TEXT`, `##INCLUDED`, …); keep the legacy `#EC CI_*` pseudo-comment for cross-statement checks that still have no `##` equivalent in 7.50. A `##`-pragma goes to the end of the affected statement (before the period/comma) — when the code changes, reposition it rather than deleting or leaving it orphaned.
 - **[P3]** String literals — backtick `` `...` `` (type `string`) instead of `'...'` (type `c`, fixed): no redundant CHAR↔STRING conversion and no doubt about the exact type (note `strlen( 'abc   ' ) ≠ strlen( \`abc   \` )`, see `data.md`).
 - **[P3]** There is no `ENUM` in ABAP 7.50. Instead of an enum — constants in an `INTERFACE` (`zif_xxx=>c_value`), used directly, without `INTERFACES zif_xxx` in the class; do not use an enumeration class (a class with `CONSTANTS`) when an interface suffices.
 - **[P3]** Regular expressions — only when simple checks are not enough. Prefer `find`, `CS`/`NS`, `CO`/`CN`, `CA`/`NA`; when a regex is needed — `regex` (POSIX; the `pcre` dialect appeared only in **7.55**, NOT in 7.50); build a complex regex from named constants, not a raw literal. Do not compile a regex per call/in a loop — precompile once (`cl_abap_regex`) and reuse; avoid catastrophic backtracking (nested quantifiers like `(a+)+` — a ReDoS on long input); anchor with `^`/`$` when a full match is intended.
@@ -13,7 +13,7 @@
 - **[P3]** Comments via `"`, not `*`. Comment the "why", not the "what". No commented-out code and no auto-signatures.
 - **[P2]** **Comments only in English.** Russian in comments is forbidden (Cyrillic is allowed only in string literals, e.g. `|Мужской|`).
 - **[P3]** Do not add manual versioning (`" ticket ABC ++ Start/End` around a piece): the version control system tracks versions, the reason — in the transport text. `TODO`/`FIXME`/`XXX` — only with initials.
-- **[P3]** Comment before the statement it relates to; no end-of-block comments (`ENDIF. " END OF IF` — the block structure says it). Delete unused code instead of commenting it out. ABAP Doc — only for public APIs, not for internal methods/attributes.
+- **[P3]** Comment before the statement it relates to; no end-of-block comments (`ENDIF. " END OF IF` — the block structure says it). Delete unused code instead of commenting it out. ABAP Doc — only for public APIs, not for internal methods/attributes; when a public method is documented — document all its parameters and `RAISING` exceptions (one line each), no partial documentation.
 
 # Names
 
@@ -63,6 +63,9 @@ The skill targets ABAP 7.50. These features look like 7.40/7.50 but are unavaila
 # Formatting
 
 - **[P3]** One statement per line.
+- **[P2]** No chained operational statements (`CATCH:`, `WHEN:`, `SELECT`/`UPDATE` chains): each chain element is a separate statement — `CATCH: cx_a, cx_b, cx_c.` is `CATCH cx_a. CATCH cx_b. CATCH cx_c.` and only the last block gets the handler code (the first two catch nothing); `UPDATE scustom SET: f1 = ..., f2 = ... WHERE id = ...` is two `UPDATE`s — the first without a `WHERE` changes all rows. Write one statement per line; exceptions into one block — `CATCH cx_a cx_b cx_c.` (ABAPDocu "Chained Statements").
+- **[P3]** No chains in up-front declarations (`DATA:`/`TYPES:`/`CONSTANTS:`/`FIELD-SYMBOLS:`): one declaration per statement; a chain is allowed only for deliberately related declarations and for `TYPES: BEGIN OF … END OF` (Clean ABAP: "Do not chain up-front declarations").
+- **[P3]** No chained assignments `a = b = c` — in ABAP this is a comparison (`b = c` → `abap_bool` into `a`), not an associative assignment; write separate statements.
 - **[P3]** Compress: remove extra blank lines, extra assignments.
 - **[P3]** One blank line to separate logical blocks **inside a method**. Between top-level elements of a class the formatter puts 2–3 blank lines (`ENDMETHOD` → `METHOD`, end of `DEFINITION` → `IMPLEMENTATION`) — that is normal, do not compress to one.
 - **[P3]** Close brackets at the end of the line.

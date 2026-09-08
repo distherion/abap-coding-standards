@@ -17,6 +17,7 @@
 - **[P2]** Do not use `MESSAGE`/list-processing in a global class: the class does not write to the UI. `MESSAGE ... INTO DATA( ... )` to populate the message list/`sy-` fields is fine (see `logging.md`). Errors — exceptions (`zcx_*`); output — at the top level/via a message list (`logging.md`).
 - **[P2]** New code — classes/methods: do not create new `FORM` and non-RFC `FM` (exception — RFC/BAPI wrappers, standard HR mechanisms and update function modules used with `CALL FUNCTION ... IN UPDATE TASK`, see `errors.md`); prefer classes over FM — even when the logic reduces to calls to standard FM/BAPI: wrap them in a class method, not your own FM.
 - **[P2]** Do not create macros `DEFINE … END-OF-DEFINITION` — code-in-a-line: inside a macro you cannot set a breakpoint, tracing is blind; extract to a method. (Leave legacy `DEFINE` alone on review.)
+- **[P3]** No empty section blocks in a class definition — `PUBLIC`/`PROTECTED`/`PRIVATE SECTION` with no members are removed; keep only the sections that contain declarations.
 
 # Signatures and method calls
 
@@ -50,6 +51,7 @@
 - **[P2]** Keep complexity in check: cyclomatic complexity of a method ≤ ~15, nesting depth ≤ ~5; beyond — extract branches/guard conditions into separate methods.
 - **[P3]** Flatten nesting with early exits: guard conditions up front (`IF NOT ... RETURN`/`CONTINUE`/`CHECK`) instead of wrapping the whole body in ever-deeper `IF` — the remaining happy path is linear (see `errors.md` fail-fast).
 - **[P2]** Remove dead code: unreachable after `RETURN`/`RAISE EXCEPTION`/`EXIT`/unconditional `CONTINUE`; `RETURN.` as the last statement of a method — also redundant (the method ends anyway); unused local variables/parameters/methods/types — remove too.
+- **[P3]** No needless `CLEAR`: a local variable is initially empty — a `CLEAR` at the start/end of a method is dead code; keep it only before piecemeal filling of a structure (consecutive component assignments) or before reuse in a loop.
 - **[P2]** Identical conditions in `IF`/`ELSEIF` (identical conditions) or the same body in different branches (identical contents) — a sign of an error/duplicate: collapse or rewrite.
 - **[P2]** An empty `IF`/`ELSE`/`ELSEIF`/`CASE` branch (only `ENDIF`/`ENDCASE`, no statements) — either a redundant `IF` or a lost condition. Remove the empty branch or fill it.
 
