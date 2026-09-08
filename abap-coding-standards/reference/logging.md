@@ -11,3 +11,4 @@
 - **[P2]** `lo_msglist->clear( )` before a new chunk/pass — otherwise messages of the previous iteration stick and duplicate.
 - **[P1]** `CATCH cx_reca_symsg` / `cx_sy_msg` — add to the log, do not swallow silently and do not pass off as success (see "Error handling": an empty `CATCH` is forbidden).
 - **[info]** Show the accumulated Application Log by handle: `cl_log_ppf=>show_log( lo_msglist->get_handle( ) )`.
+- **[P2]** Mass processing (a loop over many rows/objects) — do not write a log entry per iteration: accumulate and add via `add`/`add_symsg` once per chunk or per aggregate — `cl_reca_message_list` and the Application Log (SLG1) cost memory and slow the run.

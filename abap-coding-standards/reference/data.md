@@ -80,5 +80,5 @@
 # Domains (fixed values) and GUID
 
 - **[P3]** Text/value of a fixed-value domain — `cl_reca_ddic_doma` (RE-FX): `get_text_by_value( EXPORTING id_name = <domain> id_value = <value> IMPORTING ed_text = <text> )`; reverse `get_value_by_text( EXPORTING id_name id_text if_ignore_case = abap_true IMPORTING ed_value EXCEPTIONS not_found = 1 )`; full list — `get_values( EXPORTING id_name IMPORTING et_values )` (rows with `ddtext`). Do not map value↔text by hand. Without RE-FX — FM `DD_DOMVALUES_GET`/`DDIF_DOMA_GET`.
-- **[info]** Attributes/text of a data element (field label, length) — `cl_rec_ddic_dtel` (RE-FX, analog of `cl_reca_ddic_doma` but for a dtel, not a domain); not used in the repo, verify the signature in SE24. Standard — FM `DDIF_DTEL_GET`.
+- **[P3]** Attributes/text of a data element (field label, length) — FM `DDIF_DTEL_GET` (standard, no RE-FX dependency).
 - **[P3]** GUID — `cl_reca_guid=>guid_create( IMPORTING ed_guid_22 = DATA(lv_guid) )` (22 chars, C22); do not assemble by hand from `sy-uzeit`/random. Without RE-FX — `cl_system_uuid=>create_uuid_c22_static( )` (7.50+, catch `cx_uuid_error`).

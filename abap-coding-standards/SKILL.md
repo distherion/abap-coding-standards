@@ -55,6 +55,13 @@ Always look for logic errors and potential problems — even those not in the ru
 - **[info]** Run static analyzers as part of the review: they reliably catch their defined check set (naming, syntax, common anti-patterns). Manual review is additionally required for logic, races, LUW and defects the analyzers do not check. Toolchain: ATC (Code Inspector) in the system; open check sets — code pal for ABAP, abapOpenChecks. On abapGit-serialized code, abaplint (config `abaplint.json`) runs in CI without any ABAP system; SonarSource ABAP also works on abapGit exports.
 - **[behavior]** Before writing your own utility/library, check the ABAP open-source ecosystem — a ready one probably already exists.
 
+## Local editing of `.abap` files
+
+- **[behavior]** Files are an abapGit export: UTF-8 + LF, Cyrillic written directly (no `\u04XX`-escapes); legacy cp1251+CRLF files — rewrite entirely via Write.
+- **[behavior]** Only Read/Edit/Write — no shell/scripting utilities (`iconv`/`sed`/`awk` on unix, PowerShell/cmd on Windows) for editing or converting `.abap`. Local syntax check is unavailable — activation happens in SAP; say so in the output.
+- **[behavior]** After edits, check the block balance: `METHOD/ENDMETHOD`, `TRY/ENDTRY`, `IF/ENDIF`, `LOOP/ENDLOOP`, `CASE/ENDCASE`, `DO/ENDDO`.
+- **[P3]** SE24 adds a `* <SIGNATURE>` method header; an abapGit export has none — do not expect or remove it.
+
 ## Reference map
 Open only the file relevant to the task topic:
 
@@ -71,9 +78,9 @@ Open only the file relevant to the task topic:
 | `reference/cds-amdp.md` | CDS Views, AMDP (SQLScript) |
 | `reference/dynamic-rtti.md` | Dynamic programming, RTTI/RTTS |
 | `reference/style.md` | Language and style, names, booleans, built-ins, version (not 7.50), formatting |
-| `reference/odata.md` | OData (SEGW / Gateway) |
+| `reference/odata.md` | OData v2 (SEGW / Gateway); v4 — `reference/odata-v4.md` |
+| `reference/odata-v4.md` | OData v4 (SEGW V4, `/IWBEP/IF_V4_*`) |
 | `reference/files-io.md` | File I/O in ABAP (DATASET, gui_upload/download, encodings, JSON/XML) |
 | `reference/integration.md` | Integration: batch input (BDC), memory (ABAP/SAP/Shared), BAdI, RFC/HTTP |
 | `reference/ddic.md` | ABAP Dictionary objects: table keys, buffering, append structures, domains/data elements |
 | `reference/alv.md` | Output with ALV (SAP List Viewer), classic lists |
-| `reference/local-editing.md` | Local editing of `.abap` files (encoding, block balance) |

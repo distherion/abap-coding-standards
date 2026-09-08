@@ -110,7 +110,7 @@ abap-coding-standards/
         ├── integration.md   # batch input (BDC), memory, BAdI, RFC/HTTP
         ├── ddic.md          # ABAP Dictionary: table keys, buffering, append structures, domains/DE
         ├── alv.md           # output with ALV (SAP List Viewer), classic lists
-        └── local-editing.md # local editing of .abap files (encoding, block balance)
+        └── odata-v4.md    # OData v4 (SEGW V4) specifics
 ```
 
 ## Sources
@@ -128,7 +128,7 @@ The rules are distilled from the sources below. Links are kept here only — the
 - [SAP/abap-cleaner](https://github.com/SAP/abap-cleaner) — ADT cleanup rules (100+ checks); source of the chaining, obsolete-statement and formatting rules in `style.md`/`data.md`/`classes.md`
 - [larshp/abapOpenChecks](https://github.com/larshp/abapOpenChecks) — open SCI/ATC checks (7.40 SP02+)
 - [abaplint/abaplint](https://github.com/abaplint/abaplint) · [rules.abaplint.org](https://rules.abaplint.org) — linter for abapGit repos
-- [abapGit/abapGit](https://github.com/abapGit/abapGit) — Git client for ABAP; basis of `reference/local-editing.md` and of the abapGit serialization that abaplint/SonarQube read in CI
+- [abapGit/abapGit](https://github.com/abapGit/abapGit) — Git client for ABAP; basis of the "Local editing" rules (SKILL.md) and of the abapGit serialization that abaplint/SonarQube read in CI
 
 **Learning material**
 

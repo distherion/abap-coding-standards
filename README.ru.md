@@ -110,7 +110,7 @@ abap-coding-standards/
         ├── integration.md   # batch input (BDC), память, BAdI, RFC/HTTP
         ├── ddic.md          # словарь данных: ключи таблиц, буферизация, append-структуры, домены/DE
         ├── alv.md           # вывод через ALV (SAP List Viewer), классические списки
-        └── local-editing.md # локальное редактирование .abap (кодировки, баланс блоков)
+        └── odata-v4.md    # особенности OData v4 (SEGW V4)
 ```
 
 ## Источники
@@ -128,7 +128,7 @@ abap-coding-standards/
 - [SAP/abap-cleaner](https://github.com/SAP/abap-cleaner) — правила очистки в ADT (100+ проверок); источник правил цепочек, устаревших операторов и форматирования в `style.md`/`data.md`/`classes.md`
 - [larshp/abapOpenChecks](https://github.com/larshp/abapOpenChecks) — открытые проверки SCI/ATC (7.40 SP02+)
 - [abaplint/abaplint](https://github.com/abaplint/abaplint) · [rules.abaplint.org](https://rules.abaplint.org) — линтер для репозиториев abapGit
-- [abapGit/abapGit](https://github.com/abapGit/abapGit) — Git-клиент для ABAP; основа `reference/local-editing.md` и abapGit-сериализации, которую читают abaplint/SonarQube в CI
+- [abapGit/abapGit](https://github.com/abapGit/abapGit) — Git-клиент для ABAP; основа правил локального редактирования (SKILL.md) и abapGit-сериализации, которую читают abaplint/SonarQube в CI
 
 **Обучающие материалы**
 

@@ -20,4 +20,3 @@
 # Excel (.xlsx)
 
 - **[P2]** Do not generate Excel by hand (`gui_download` to CSV, OLE/office automation, `ALSM_EXCEL_TO_INTERNAL_TABLE`) — fragile and dialog-only. Proven libraries: **abap2xlsx** (`ZCL_EXCEL`, clean OO, generating/reading `.xlsx` on the server, background and dialog), **XLSX Workbench** (`ZXLWB`, a visual SMARTFORMS-like form designer), **xtt** (Xml Template Toolkit, a template engine for Excel/Word/PDF — `ZCL_XTT_EXCEL_XLSX`/`ZCL_XTT_WORD_DOCX`/`ZCL_XTT_PDF` + `merge( )`). Choice: programmatic read/generate of `.xlsx` — abap2xlsx; a template with formulas/charts, and also Word/PDF — xtt; designing an Excel form without code — XLSX Workbench.
-- **[info]** abap2xlsx — a model of well-written OO code (writer/reader separated, encapsulation, style factories). Worth using as a reference of clean ABAP architecture.
