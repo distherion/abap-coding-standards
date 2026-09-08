@@ -25,7 +25,7 @@
 
 ## Injecting test doubles
 
-- **[P2]** Dependency inversion via the constructor: dependencies are passed into the constructor. Setter injection — only for dependencies that are genuinely optional or configured per-instance (per `classes.md`); it must not be a way to swap a required dependency halfway or bypass the constructor. FRIENDS injection (reaching into private fields after `NEW`) — no (bypasses constructor initialization, breaks on rename).
+- **[P2]** Injection — per `classes.md`: dependencies via the constructor; a setter — only for genuinely optional or configured-per-instance dependencies. It must not swap a required dependency halfway or bypass the constructor. (FRIENDS injection into private fields after `NEW` — no, see the `LOCAL FRIENDS` rule.)
 - **[P3]** Test doubles — `cl_abap_testdouble=>create( 'zif_x' )` + `configure_call( ... )->returning( ... )`, shorter and clearer than a hand-written stub class.
 - **[P2]** `TEST-SEAM`/`TEST-INJECTION` — a temporary workaround for legacy, not a permanent solution (invasive, tangled in private dependencies). New code — no test seam.
 - **[P2]** `LOCAL FRIENDS` — only to call the `CREATE PRIVATE` constructor of the tested class with a test double. Do not reach through it into private members for mock data (fragile).

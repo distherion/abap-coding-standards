@@ -26,8 +26,7 @@
   ENDTRY.
   ```
 - **[info]** Check that the `WHERE` condition is covered by an index (SE11/`ST05`); for a quick data probe — `UP TO n ROWS`.
-- **[P2]** No `SELECT` in a row-processing loop (incl. `SELECT SINGLE`) — collect keys and select once with `SELECT`/`JOIN`/subquery.
-- **[P2]** Do not use `SELECT ... ENDSELECT` in a row-processing loop — `INTO TABLE`/`INTO CORRESPONDING FIELDS OF TABLE`; for large volumes — `PACKAGE SIZE`/cursor. (Note: the DB interface transfers rows in packets, not row-by-row — the real problem is the per-row processing loop and cursor handling, not a "row-by-row fetch".)
+- **[P2]** No `SELECT` in a row-processing loop — not `SELECT SINGLE`, not `SELECT ... ENDSELECT`: collect keys and select once (`SELECT`/`JOIN`/subquery) into `INTO TABLE`/`INTO CORRESPONDING FIELDS OF TABLE`; for large volumes — `PACKAGE SIZE`/cursor. (Note: the DB interface transfers rows in packets, not row-by-row — the real problem is the per-row processing loop and cursor handling, not a "row-by-row fetch".)
 - **[P2]** Do aggregation and `GROUP BY`/`HAVING`/`[NOT] EXISTS` in SQL, do not fetch all rows and count in ABAP (`LOOP AT END OF`).
 - **[P2]** `SELECT SINGLE` by a partial key without `ORDER BY` is non-deterministic. Need a specific row among many — `SELECT ... UP TO 1 ROWS ... ORDER BY`; existence check — `SELECT SINGLE @abap_true ...` without field transport.
 - **[P2]** Millions of rows — in packages: `PACKAGE SIZE` or `OPEN CURSOR` + `FETCH ... PACKAGE SIZE`; do not fetch everything into memory. Do **not** `COMMIT WORK` inside the cursor loop/`SELECT` loop — a DB commit closes all open DB cursors, the next `FETCH` fails. Commit per package only if each package is read in its own independent `SELECT` (e.g. split by key), or commit once after the last `FETCH`/`CLOSE`.
