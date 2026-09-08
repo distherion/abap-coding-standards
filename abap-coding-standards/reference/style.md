@@ -3,10 +3,12 @@
 - **[P3]** ABAP 7.50, unless stated otherwise.
 - **[P3]** **Line length < 120 characters** — wrap long expressions.
 - **[P3]** Functional constructs: `DATA(...)`, `VALUE #()`, `CORRESPONDING #()`, `NEW`, `COND`, `SWITCH`, `REDUCE`.
+- **[P3]** **No mixing of equivalent spellings** — pick one alternative per construct and use it consistently (comparison operators `=`/`<>` vs `EQ`/`NE`; modern vs legacy statement variants, see the next bullet).
+- **[P3]** **No obsolete statements** — where 7.50 has a modern replacement, use it (ABAPDocu "Obsolete Language Elements", Clean ABAP). Concrete replacements — in this section (`MOVE` → `=`, `CREATE OBJECT` → `NEW`), in `data.md` (`REFRESH` → `CLEAR`, `MOVE-CORRESPONDING`, `TABLES`/`NODES`/`WITH HEADER LINE`) and `open-sql.md` (unescaped host variables).
 - **[P3]** **Strings/operators**: templates `|...|` and `&&` instead of `CONCATENATE`/`STRING`; `MOVE` → `=`, `TRANSLATE` → `to_upper`/`to_lower`; `#EC` → pragmas `##` where the check has one (`##NO_TEXT`, `##INCLUDED`, …); keep the legacy `#EC CI_*` pseudo-comment for cross-statement checks that still have no `##` equivalent in 7.50.
 - **[P3]** There is no `ENUM` in ABAP 7.50. Instead of an enum — constants in an `INTERFACE` (`zif_xxx=>c_value`), used directly, without `INTERFACES zif_xxx` in the class; do not use an enumeration class (a class with `CONSTANTS`) when an interface suffices.
 - **[P3]** Regular expressions — only when simple checks are not enough. Prefer `find`, `CS`/`NS`, `CO`/`CN`, `CA`/`NA`; when a regex is needed — `regex` (POSIX; the `pcre` dialect appeared only in **7.55**, NOT in 7.50); build a complex regex from named constants, not a raw literal.
-- **[P3]** Constants instead of magic numbers; group constants in `BEGIN OF … END OF` blocks.
+- **[P3]** Constants instead of magic numbers; group constants in `BEGIN OF … END OF` blocks. Name a constant by its **meaning**, not by the literal it holds: `lc_storage_class` for `'C123'`, not `lc_c123` — renaming a value into a same-named literal adds no information (Clean ABAP: "constants also need descriptive names").
 - **[P3]** Comments via `"`, not `*`. Comment the "why", not the "what". No commented-out code and no auto-signatures.
 - **[P2]** **Comments only in English.** Russian in comments is forbidden (Cyrillic is allowed only in string literals, e.g. `|Мужской|`).
 - **[P3]** Do not add manual versioning (`" ticket ABC ++ Start/End` around a piece): the version control system tracks versions, the reason — in the transport text. `TODO`/`FIXME`/`XXX` — only with initials.
@@ -26,7 +28,7 @@
 
 # Booleans and conditions
 
-- **[P3]** `abap_true`/`abap_false` instead of the literal `'X'`/`' '`.
+- **[P3]** `abap_true`/`abap_false` instead of the literal `'X'`/`' '`. Check an `abap_bool` via the constants — `= abap_true`/`= abap_false`, not `IS INITIAL`/`IS NOT INITIAL` or a space comparison: `IS INITIAL` reflects technical emptiness of the data object, the constant — the semantic value (and the pair `abap_true`/`abap_false` is the single project-wide definition).
 - **[P1]** Booleans from conditions — `xsdbool( )`: returns `c(1)`, compare with `abap_true`/`abap_false`. `boolc( )` returns `string` (`X`/space) — do not compare with `abap_true`/`abap_false` (the `c`↔`string` conversion gives a wrong result). `boolx( bool = ... bit = ... )` — a bit by number.
 - **[P3]** Positive conditions (`IS NOT` instead of `NOT IS`); `CASE` instead of `ELSE IF`.
 - **[P3]** Complex conditions (`IF a AND b AND c`) — extract into a predicate method `is_...` with a telling name.
@@ -37,6 +39,11 @@
 - **[info]** String (7.40+): `find`, `find_end`, `find_any_of`, `find_any_not_of`, `count`, `count_any_of`, `count_any_not_of`, `contains`, `contains_any_of`, `contains_any_not_of`, `substring`, `substring_after`, `substring_before`, `substring_from`, `substring_to`, `replace`, `insert`, `condense`, `segment`, `shift_left`, `shift_right`, `repeat`, `reverse`, `match`, `matches`, `distance`, `to_upper`, `to_lower`, `to_mixed`, `from_mixed`, `concat_lines_of`, `cmin`, `cmax`, `numofchar`, `strlen`, `xstrlen`, `escape`.
 - **[info]** Numeric (7.40+): `abs`, `sign`, `ceil`, `floor`, `trunc`, `frac`, `round`, `rescale`, `ipow`, `nmin`, `nmax`, `sqrt`, `sin`/`cos`/`tan`, `asin`/`acos`/`atan`, `sinh`/`cosh`/`tanh`, `exp`, `log`, `log10`.
 - **[info]** Predicates `contains( )`, `matches( )`, `line_exists( itab[ ... ] )` are **predicate functions** — usable in logical expressions, not functions returning a value: you cannot assign them straight to a `c(1)` variable (use `xsdbool( )`); `line_exists` does not raise `CX_SY_ITAB_LINE_NOT_FOUND`.
+
+# Screens and events
+
+- **[P2]** No business logic in dialog modules (`PBO`/`PAI` of a Dynpro) and event blocks (`INITIALIZATION`, `START-OF-SELECTION`, `END-OF-SELECTION`, `AT SELECTION-SCREEN...`, `AT LINE-SELECTION`, `GET`, `TOP-OF-PAGE`): the module/event reads the screen/selection state and delegates to a class method. Business rules in a class are testable and do not depend on the UI; a dialog module must not compute or write direct.
+- **[P3]** Accessibility of the UI: do not convey information by color alone (color-blind users); icons — a tooltip; table columns — a header; input/output fields — a meaningful label; fields grouped into frames with a meaningful title. Verified device-independent behavior helps people with impairments and is a compliance factor.
 
 # Version: what is NOT in 7.50
 
@@ -57,6 +64,7 @@ The skill targets ABAP 7.50. These features look like 7.40/7.50 but are unavaila
 - **[P3]** **Case**: keywords — UPPER, everything else (identifiers, type/method/parameter names, fields, built-in functions `lines`/`to_upper`/`xsdbool`) — LOWER. The pretty-printer **can** change the case of identifiers (depends on its setup) — write lower immediately; legacy-upper (`CLASS ZCL_X IMPLEMENTATION.`) — do not flag.
 - **[P3]** **Punctuation**: no space before a comma and period (`TYPE datum.`, not `TYPE datum .`).
 - **[P3]** **Indentation**: spaces, +2/level; `METHOD`/`ENDMETHOD` — column 0, no leading spaces; no tabs. Write by convention immediately — the diff to abapGit code is clean, do not fight the formatter.
+- **[P3]** **Team formatter settings**: use the team's pretty-printer settings, do not bring your own; do not mass-reformat other people's code — a reformatting diff hides the actual change and blocks the review.
 - **[info]** The `!`-escape before a parameter name in `METHODS`/`INTERFACES` — an abapGit artifact; do not add by hand, it is normal in exports.
 - **[P3]** **SELECT formatting**: fields from `SELECT`/`WHERE`/`JOIN` — each on its own line, field names one under another (aligned into a column). `ON` — on its own line at the level of `AND`, condition fields in the column:
   ```abap

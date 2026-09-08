@@ -8,6 +8,12 @@
 - **[P2]** Do not proliferate domains: flags/statuses — a domain with fixed values. Reuse standard data elements (`BUKRS`, `WAERS`, `PERNR`…) — they bring value table, search help, translations; a custom dtel only for new semantics.
 - **[P2]** Generating document/record numbers — via number range (`NUMBER_GET_NEXT`), not by hand (`MAX + 1` — a race under parallelism). Gaps in numbers are normal: do not require continuity, do not "fix" holes; the buffered number comes from the range.
 
+# Texts and translation
+
+- **[P2]** Translatable text — a separate **text table** (`*T`) with a foreign key to the base table, not text columns in the main table. A text table supports SE63 translation, offers several lengths (short/medium/long) for one object and adds a value list / maintenance-view text column automatically. UI texts — a message class or `TEXT-` symbols, not literals (see `errors.md`).
+- **[P3]** One original language for all objects of a project (e.g. English) — easier maintenance and translation; the phrase lengths differ across languages, leave space for them in the UI.
+- **[P3]** Do not show system fields in the UI (`sy-uzeit`, `sy-datum`, `sy-host`, `sy-sysid`, `sy-dbsys`, …) — technical values; only business data reaches the user.
+
 # Numbers
 
 - **[P1]** Integer division `/` rounds commercially (round half up): `4 / 5 = 1`, `2 / 3 = 1`, `5 / 2 = 3`. The integer part without rounding comes from `DIV`: `4 DIV 5 = 0`, `7 DIV 3 = 2`. Do not confuse them — it gives a wrong result.
@@ -33,6 +39,7 @@
 
 - **[info]** Inline `DATA(...)` instead of upfront blocks. **ABAP has no block scoping**: a variable declared inside `IF`/`LOOP`/`CASE`/`DO`/`TRY` (including `FIELD-SYMBOLS`) is visible to the end of the method — use below in the code is valid, do not flag it as an error.
 - **[info]** One inline name (`DATA(x)`, `CATCH ... INTO data(x)`) cannot be declared twice in one method — that is a syntax error (not a review finding). Declare a variable used by several `CATCH`/loops once at method level (`DATA lx_error TYPE REF TO cx_root.`) and reuse it.
+- **[P2]** No implicit data declarations: `TABLES` (declares an implicit table work area; not allowed in classes; only for exchange with classic-Dynpro screen fields in the program's global part — ABAPDocu: "No table work areas except for classic dynpros"), `NODES` (obsolete — interface work areas for logical databases only), `TYPE ... WITH HEADER LINE`/`TABLE ... WITH HEADER LINE` (legacy). Use `DATA` with an explicit type.
 - **[P2]** Inline `DATA(x)`/`FIELD-SYMBOL` inside a branch (`IF`/`CASE`/`TRY` without `ELSE`/`CATCH`): if the branch did not run, the variable is not declared/assigned — using it below gives `x is not assigned`/garbage. Declare before the branch or fill it in all branches.
 - **[P2]** Do not modify system fields (`sy-subrc`, `sy-tabix`, `sy-index`, `sy-datum`, …) — a direct write to them is not allowed. Use a local variable for your own counter/flag.
 - **[P2]** Shadowed variable: a local (`lv_*`/`DATA(x)`) named like an attribute/global hides it — the wrong one is read. Do not name locals like attributes.

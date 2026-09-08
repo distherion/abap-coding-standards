@@ -117,7 +117,7 @@ The rules are distilled from the sources below. Links are kept here only — the
 
 **SAP official**
 
-- [Clean ABAP — SAP styleguides](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md)
+- [Clean ABAP — SAP styleguides](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md) · [ABAP Code Reviews — SAP styleguides](https://github.com/SAP/styleguides/blob/main/abap-code-review/ABAPCodeReview.md)
 - [SAP Help Portal](https://help.sap.com) · [ABAP Keyword Documentation 7.50 (ABAPDocu)](https://help.sap.com/doc/abapdocu_750_index_htm/7.50/en-US/index.htm) · [SAP Support Notes / Knowledge base](https://support.sap.com/en/my-support/knowledge-base.html)
 
 **Static analysis & tooling**
@@ -131,6 +131,7 @@ The rules are distilled from the sources below. Links are kept here only — the
 - [SAP-samples/abap-oo-basics](https://github.com/SAP-samples/abap-oo-basics) — OO basics
 - [SAP-samples/abap-cheat-sheets](https://github.com/SAP-samples/abap-cheat-sheets) — ABAP syntax in a nutshell with executable demo examples
 - [SchwarzIT/abap_oo_patterns](https://github.com/SchwarzIT/abap_oo_patterns) — OO design patterns
+- [ilyakaznacheev/abap-best-practice](https://github.com/ilyakaznacheev/abap-best-practice) — a list of common principles of clean ABAP development
 - [dotabap.org](https://dotabap.org) — ABAP open-source catalog
 
 ## Contributing

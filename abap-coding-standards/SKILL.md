@@ -52,7 +52,7 @@ Always look for logic errors and potential problems — even those not in the ru
 - **[behavior]** Unsure about an API or standard SAP behavior — see "Finding sources".
 
 ## Automated checks
-- **[info]** Run static analyzers as part of the review: they reliably catch their defined check set (naming, syntax, common anti-patterns). Manual review is additionally required for logic, races, LUW and defects the analyzers do not check.
+- **[info]** Run static analyzers as part of the review: they reliably catch their defined check set (naming, syntax, common anti-patterns). Manual review is additionally required for logic, races, LUW and defects the analyzers do not check. Toolchain: ATC (Code Inspector) in the system; open check sets — code pal for ABAP, abapOpenChecks. On abapGit-serialized code, abaplint (config `abaplint.json`) runs in CI without any ABAP system; SonarSource ABAP also works on abapGit exports.
 - **[behavior]** Before writing your own utility/library, check the ABAP open-source ecosystem — a ready one probably already exists.
 
 ## Reference map

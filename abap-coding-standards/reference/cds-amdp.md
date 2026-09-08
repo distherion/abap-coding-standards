@@ -9,6 +9,7 @@
 - **[P2]** Fields and types — as in DDIC; the key — `key` on fields. Associations (`association [0..1]` / `[1..*]`) instead of JOIN in the main select; unfold via path expressions (`_Assoc.field`) or `$expand`.
 - **[P2]** Do not duplicate logic in view and ABAP: computed fields, filters, aggregates — in CDS where possible; in ABAP — only what CDS lacks.
 - **[P3]** Naming: `Z_I_` — interface/basic view (reusable, pure model), `Z_C_` — consumption view (over `Z_I_`, `@ObjectModel.*`/`@UI.*` annotations for Fiori/OData, no business logic in the select).
+- **[P3]** Layering: one **basic view** (`Z_I_`) per DB table / table function; upper-layer views access the basic views, not the DB tables directly — the model's real field names, associations and annotations live in one place, and consumer changes cannot silently bypass them.
 - **[info]** Input parameters (`with parameters`) — for parameterized reuse.
 
 ## AMDP
