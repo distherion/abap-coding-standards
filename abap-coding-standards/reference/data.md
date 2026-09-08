@@ -17,7 +17,7 @@
 - **[P1]** Integer overflow (`2147483647 + 1`) → `CX_SY_ARITHMETIC_OVERFLOW` (catchable).
 - **[P1]** Inline `DATA(x) = lv_packed + 1` with a `p` operand gives `p LENGTH 8 DECIMALS 0` — the fraction is lost. For fractions declare the type explicitly: `DATA(x) TYPE p LENGTH 8 DECIMALS 2`.
 - **[P1]** `EXACT` on digit loss: `CX_SY_CONVERSION_ROUNDING` (fraction/digits lost), `CX_SY_CONVERSION_OVERFLOW` (overflow) — catch it or guarantee the range.
-- **[info]** Rounding: `round( val = ... dec = ... [mode = ...] )`, `ceil`/`floor`/`trunc`/`frac`; `nmin`/`nmax` — min/max of arguments; `cl_abap_math` constants (`pi`, `e`, `min_*`/`max_*` for decfloat/integers).
+- **[info]** Rounding: `round( val = ... dec = ... [mode = ...] )`, `ceil`/`floor`/`trunc`/`frac`; `nmin`/`nmax` — min/max of arguments; `cl_abap_math` constants — the numeric limits (`c_min_*`/`c_max_*` for decfloat/integers); the mathematical constants `pi`/`e` are **not** in the 7.50 class (verify on the target system, otherwise use `acos( -1 )`).
 
 # Date and time
 
@@ -27,7 +27,7 @@
 - **[P1]** `CONVERT TIME STAMP ... TIME ZONE ... INTO DATE ... TIME ...` sets `sy-subrc`: `8` = invalid timezone, `12` = invalid timestamp — check immediately (see `errors.md`).
 - **[P1]** `EXACT d( lv_str )` validates the date — on an invalid one it raises `CX_SY_CONVERSION_NO_DATE`; `CONV d( )` does not validate.
 - **[info]** Timezone: server — `sy-datum`/`sy-uzeit`; user's local — `sy-datlo`/`sy-timlo`/`sy-zonlo`; user timezone — `cl_abap_context_info=>get_user_time_zone( )`.
-- **[P3]** Timestamp arithmetic — prefer `cl_abap_tstmp`, not manual recomputation of `timestampl`/`CONVERT`: difference — `cl_abap_tstmp=>subtract( tstmp1 = ... tstmp2 = ... )` (→ seconds), add — `cl_abap_tstmp=>add( tstmp = ... secs = ... )` (verify exact names/parameters in SE24). Local↔UTC — `systemtstmp_syst2utc`/`systemtstmp_utc2syst`; DST — `systemtstmp_syst2loc`/`systemtstmp_loc2syst`/`is_double_interval`. `GET TIME STAMP` returns UTC. `CONVERT TIME STAMP` only converts, does not add. In DB `SELECT` — built-ins `tstmp_add_seconds( )`/`tstmp_seconds_between( )`/`tstmp_is_valid( )` (7.50).
+- **[P3]** Timestamp arithmetic — prefer `cl_abap_tstmp`, not manual recomputation of `timestampl`/`CONVERT`: difference — `cl_abap_tstmp=>subtract( tstmp1 = ... tstmp2 = ... )` (→ seconds), add — `cl_abap_tstmp=>add( tstmp = ... secs = ... )` (verify exact names/parameters in SE24). Local↔UTC — `systemtstmp_syst2utc`/`systemtstmp_utc2syst`; DST — `systemtstmp_syst2loc`/`systemtstmp_loc2syst`/`is_double_interval`. `GET TIME STAMP` returns UTC. `CONVERT TIME STAMP` only converts, does not add. In DB `SELECT` — built-ins `tstmp_add_seconds( )`/`tstmp_seconds_between( )`/`tstmp_is_valid( )` — **NOT in 7.50**: they are not part of the 7.50 built-in functions (added later, HANA context); stay on `cl_abap_tstmp`/`CONVERT TIME STAMP`.
 
 # Variables and internal tables
 
@@ -38,7 +38,7 @@
 - **[P2]** Shadowed variable: a local (`lv_*`/`DATA(x)`) named like an attribute/global hides it — the wrong one is read. Do not name locals like attributes.
 - **[P2]** Do not use `sy-sysid`/`sy-sysuuid`/`sy-host` in business logic (ties to system/host). Identifiers — via configuration/constants.
 - **[P3]** Initialization with a named type: `DATA(lv_x) = VALUE ty_type( ).` instead of `DATA lv_x TYPE ty_type.`; anonymous types (`TABLE OF … WITH KEY`, `WITH DEFAULT KEY`) cannot be declared inline — use `TYPE` there.
-- **[P3]** `INSERT INTO TABLE` — when uniqueness matters (`SORTED`/`HASHED`; a duplicate — `sy-subrc = 4`); `APPEND` — for `STANDARD` (insertion order, duplicates allowed). `line_exists()` instead of `READ TABLE … NO FIELDS`; `LOOP AT … WHERE` instead of a nested `IF`.
+- **[P3]** `INSERT INTO TABLE` — when uniqueness matters (`SORTED`/`HASHED`): a duplicate of the **primary key** — `sy-subrc = 4` (also: `sy-tabix` is not set); a duplicate of a **unique secondary key** — handleable exception `CX_SY_ITAB_DUPLICATE_KEY` (handle it or the program aborts); `INSERT` of a block where any row would duplicate — runtime error, not `sy-subrc`. `APPEND` — for `STANDARD` (insertion order, duplicates allowed). `line_exists()` instead of `READ TABLE … NO FIELDS`; `LOOP AT … WHERE` instead of a nested `IF`.
 - **[info]** `REF #( )` instead of `GET REFERENCE OF` for data references.
 - **[P3]** `MOVE-CORRESPONDING` → `CORRESPONDING #( ... )`: explicit `MAPPING`/`EXCEPT`, the contract is visible, safer when the structure changes.
 - **[P3]** Constructor operators (`VALUE`, `COND`, `SWITCH`, `CORRESPONDING`, `CONV`, `NEW`, `REDUCE`, `FILTER`, `REF`) — type via `#` when it is inferred from context: a typed variable/field, a typed method parameter, a table row. Explicit type (`COND type( )`, `VALUE type( )`) — only when the context gives no type: inline `DATA(...)` with no surrounding type, a generic parameter `c`/`n`/`x`, ambiguity (`DATA(x) = COND abap_bool( ... )`, `DATA(lt) = VALUE infty_tab( ... )`).

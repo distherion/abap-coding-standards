@@ -1,6 +1,6 @@
 # OData (SEGW / Gateway)
 
-> **[info]** The main part of this section — OData **v2** (the default in Gateway 7.40/7.50). OData **v4** also exists in 7.50 (SAP Gateway, SEGW with service type V4) — see "OData v4" below. RAP-style v4 (`@OData.publish: true`, XCO, CDS) — S/4HANA / ABAP Cloud, not classic 7.50.
+> **[info]** The main part of this section — OData **v2** (the default in Gateway 7.40/7.50). OData **v4** also exists in 7.50 (SAP Gateway, SEGW with service type V4) — see "OData v4" below. `@OData.publish: true` on a CDS view is SADL **auto-exposure** (typically v2) — not a RAP marker; RAP (`service definition`/`service binding`, XCO) — ABAP Cloud / S/4HANA, not classic 7.50.
 
 - **[P1]** Implement logic only in `*_DPC_EXT`/`*_MPC_EXT`. The base `*_DPC`/`*_MPC` are regenerated on every service regeneration in SEGW — code there is silently lost.
 - **[P2]** CRUD methods in `DPC_EXT`: `GET_ENTITYSET` (collection), `GET_ENTITY` (by key), `CREATE_ENTITY` (`io_data_provider->read_entry_data( IMPORTING es_data = ... )` → return `er_entity`), `UPDATE_ENTITY`, `DELETE_ENTITY`.
@@ -18,7 +18,7 @@
 
 # OData v4
 
-> **[info]** In 7.50 v4 is available via SAP Gateway (SEGW, service type V4). The API is `edm`-style, namespace `/IWBEP/IF_V4_*`, differs from v2 (`/IWBEP/IF_MGW_*`). Do not mix: the v2 specifics above ($batch CHANGESET, ETag `GET_IS_CONDITIONAL_IMPLEMENTED`, `/IWBEP/CX_MGW_BUSI_EXCEPTION`) — not for v4.
+> **[info]** In 7.50 v4 is available via SAP Gateway (SEGW, service type V4) **only with a recent Gateway component (from ~7.50 SP04+)** — verify the SEGW/service-type support on the target system; a plain 7.40/7.50 base may not have it. The API is `edm`-style, namespace `/IWBEP/IF_V4_*`, differs from v2 (`/IWBEP/IF_MGW_*`). Do not mix: the v2 specifics above ($batch CHANGESET, ETag `GET_IS_CONDITIONAL_IMPLEMENTED`, `/IWBEP/CX_MGW_BUSI_EXCEPTION`) — not for v4.
 
 - **[P1]** Write v4 service classes yourself by inheriting from the standard ones, do not edit the generated ones: model (`$metadata`/EDMX) — a descendant of `/IWBEP/CL_V4_ABS_MODEL_PROV` (exactly `_PROV`), method `/IWBEP/IF_V4_MP_BASIC~DEFINE`; data (CRUD) — a descendant of `/IWBEP/CL_V4_ABS_DATA_PROVIDER` (implements `/IWBEP/IF_V4_DATA_PROVIDER` → `/IWBEP/IF_V4_DP_BASIC`/`DP_INTERMEDIATE`/`DP_ADVANCED`/`DP_BATCH`/`DP_PROCESS_STEPS`).
 - **[info]** Model: in `define`, add a private method per entity type/set (`define_*( io_model )` with `io_model TYPE REF TO /iwbep/if_v4_med_model`), not one big sheet. A common helper to "create an entity from a structure" (see below).

@@ -5,7 +5,7 @@
 ## Principles
 
 - **[P2]** Test the public, not the private: a test on the public interface (`zif_*`/public methods) survives refactoring. A need to test `PRIVATE`/`PROTECTED` — a signal: the concept wants to be a separate class with its own interface, or the domain logic is buried in glue code (BOPF action, `*_DPC_EXT`).
-- **[P2]** Type the code under test by interface, not class: `DATA cut TYPE REF TO zif_x.`, not `TYPE REF TO zcl_x.`
+- **[P2]** Type the code under test by interface, not class: `DATA cut TYPE REF TO zif_x.`, not `TYPE REF TO zcl_x.` — for integration/service classes that declare an interface (per `classes.md`); a simple `FINAL` value/domain class without an interface is tested directly by its class type.
 - **[P3]** Coverage — a tool for finding forgotten tests, not a KPI. A test without an assert for a percentage — worse than no test (masks a non-trivial refactor). < 100% with honest tests is normal.
 - **[P3]** Test code is more readable than production: it is documentation. Keep tests simpler than production, follow the same conventions.
 - **[P2]** No "manual testing" via `$TMP` copies and test reports checked by eye — automate into a unit test with an assert.
@@ -38,7 +38,7 @@
 - **[P3]** The name reflects given/expected. The skill's convention — `should_[behavior]_[condition]` (see `classes.md`); Clean ABAP — descriptive (`reads_existing_entry`, `throws_on_invalid_key`, `detects_invalid_input`). Both are fine, the main thing — not `test_...` and not cryptic (`get_attributes_wo_w`). If the name does not fit in 30 chars — explain in the first line of the method.
 - **[P3]** The given-when-then pattern (= Arrange-Act-Assert): initialization ("given"), exactly one call to the tested ("when"), the check ("then"). Separate visually (blank lines) or extract into sub-methods.
 - **[P2]** "when" — exactly one call. Several calls = unclear focus, cannot find the cause of a failure.
-- **[P3]** `TEARDOWN` — only if actually needed (cleaning DB/external resources in an integration test). Resetting `cut`/test doubles is redundant — `setup` will overwrite.
+- **[P3]** `TEARDOWN` — only if actually needed (cleaning DB/external resources in an integration test). Resetting `cut`/test doubles is redundant — `setup` will overwrite. Note: `setup` re-creates instance state on every test but does **not** reset class-level (static) data, buffers and global switches — reset those explicitly (`TEARDOWN` or in `setup`) or tests leak state into each other.
 
 ## Test data
 

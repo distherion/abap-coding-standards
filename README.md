@@ -72,7 +72,7 @@ Or reference the folder without copying, in `opencode.json`:
 
 ### Codex
 
-Codex has no skill loader — paste the rules into `AGENTS.md` or a custom prompt/agent.
+Newer Codex versions load skills from `.codex/skills/` (or via `AGENTS.md`); if yours has no skill loader — paste the rules into `AGENTS.md` or a custom prompt/agent.
 
 ### Cursor
 
@@ -113,7 +113,7 @@ abap-coding-standards/
 
 ## Sources
 
-The rules are distilled from the sources below. Links are also inlined in `SKILL.md`.
+The rules are distilled from the sources below. Links are kept here only — the skill itself (`SKILL.md`/`reference/`) is deliberately link-free (see `CONTRIBUTING.md`).
 
 **SAP official**
 

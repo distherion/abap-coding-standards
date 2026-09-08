@@ -5,19 +5,22 @@
 - **[P2]** Types in `SELECT ... INTO [CORRESPONDING]` must match the DDIC types of the columns: a mismatch (`numc`→`char`, different `p` length) silently converts/truncates. Check the target structure against the table.
 - **[P1]** `FOR ALL ENTRIES` — only after an emptiness check.
 - **[info]** An internal table as an ABAP SQL source (`SELECT ... FROM @itab AS alias`) — from 7.52, NOT 7.50 (see style.md "Version: what is NOT in 7.50"). Only when SQL functionality (JOIN/aggregates/subqueries) is needed beyond `LOOP`/`READ` — otherwise ABAP statements are faster. Moving data to the DB silences the pragma `##itab_db_select`; more than one table per statement — only via the in-memory engine without moving.
-- **[P2]** For selection by a list of keys prefer **RANGE + `IN`**, not `FOR ALL ENTRIES` — faster. A RANGE has a limit: when exceeded, Open SQL raises `CX_SY_OPEN_SQL_DB` (unhandled — dump `SAPSQL_STMNT_TOO_LARGE`/`DBSQL_STMNT_TOO_LARGE`). Catch the exception and fall back to FAE; equivalence — only for `EQ` rows, split `BT`/`EXCL` intervals into chunks first:
+- **[P2]** For selection by a list of keys prefer **RANGE + `IN`**, not `FOR ALL ENTRIES` — faster. A RANGE has a statement-size limit: when the `WHERE` condition with `IN` exceeds it, Open SQL raises `CX_SY_OPEN_SQL_DB` (unhandled — dump `SAPSQL_STMNT_TOO_LARGE`/`DBSQL_STMNT_TOO_LARGE`). Catch it and fall back to FAE **only for this size case** — for any other DB error re-raise the exception, a blind FAE fallback would hide the real fault. **An empty RANGE makes `IN` true — it selects ALL rows** — check the emptiness BEFORE the query, not in the `CATCH` block. Equivalence with FAE — only for `EQ` rows; split `BT`/`EXCL` intervals into chunks first:
   ```abap
-  DATA(lt_pernr_range) = VALUE #( FOR ls IN lt_pernrs ( sign = 'I' option = 'EQ' low = ls-pernr ) ).
+  TYPES ty_pernr_range TYPE RANGE OF pernr.
+  IF lt_pernrs IS INITIAL.
+    RETURN.  " empty list — no query at all (an empty RANGE in IN would select all rows)
+  ENDIF.
+  DATA(lt_pernr_range) = VALUE ty_pernr_range(
+    FOR ls IN lt_pernrs ( sign = 'I' option = 'EQ' low = ls-pernr ) ).
   TRY.
       SELECT pernr, endda FROM pa0001 INTO TABLE @lt_pa0001
         WHERE pernr IN @lt_pernr_range AND endda = @lv_endda.
     CATCH cx_sy_open_sql_db.
-      " fall back only on statement-size overflow; re-raise any other DB error
-      IF lt_pernr_range[] IS NOT INITIAL.
-        SELECT pernr, endda FROM pa0001 INTO TABLE @lt_pa0001
-          FOR ALL ENTRIES IN lt_pernr_range
-          WHERE pernr = @lt_pernr_range-low AND endda = @lv_endda.
-      ENDIF.
+      " cause is known here — the size limit; for other DB errors re-raise instead
+      SELECT pernr, endda FROM pa0001 INTO TABLE @lt_pa0001
+        FOR ALL ENTRIES IN lt_pernr_range
+        WHERE pernr = @lt_pernr_range-low AND endda = @lv_endda.
   ENDTRY.
   ```
 - **[info]** Check that the `WHERE` condition is covered by an index (SE11/`ST05`); for a quick data probe — `UP TO n ROWS`.

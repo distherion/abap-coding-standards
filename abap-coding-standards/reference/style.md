@@ -3,7 +3,7 @@
 - **[P3]** ABAP 7.50, unless stated otherwise.
 - **[P3]** **Line length < 120 characters** — wrap long expressions.
 - **[P3]** Functional constructs: `DATA(...)`, `VALUE #()`, `CORRESPONDING #()`, `NEW`, `COND`, `SWITCH`, `REDUCE`.
-- **[P3]** **Strings/operators**: templates `|...|` and `&&` instead of `CONCATENATE`/`STRING`; `MOVE` → `=`, `TRANSLATE` → `to_upper`/`to_lower`; `#EC` → pragmas `##`.
+- **[P3]** **Strings/operators**: templates `|...|` and `&&` instead of `CONCATENATE`/`STRING`; `MOVE` → `=`, `TRANSLATE` → `to_upper`/`to_lower`; `#EC` → pragmas `##` where the check has one (`##NO_TEXT`, `##INCLUDED`, …); keep the legacy `#EC CI_*` pseudo-comment for cross-statement checks that still have no `##` equivalent in 7.50.
 - **[P3]** There is no `ENUM` in ABAP 7.50. Instead of an enum — constants in an `INTERFACE` (`zif_xxx=>c_value`), used directly, without `INTERFACES zif_xxx` in the class; do not use an enumeration class (a class with `CONSTANTS`) when an interface suffices.
 - **[P3]** Regular expressions — only when simple checks are not enough. Prefer `find`, `CS`/`NS`, `CO`/`CN`, `CA`/`NA`; when a regex is needed — `regex` (POSIX; the `pcre` dialect appeared only in **7.55**, NOT in 7.50); build a complex regex from named constants, not a raw literal.
 - **[P3]** Constants instead of magic numbers; group constants in `BEGIN OF … END OF` blocks.
@@ -66,9 +66,10 @@ The skill targets ABAP 7.50. These features look like 7.40/7.50 but are unavaila
     FROM pa0001 AS a
     INNER JOIN pa0007 AS b
       ON  b~pernr = a~pernr
-      AND b~begda <= lv_date
-      AND b~endda >= lv_date
+      AND b~begda <= @lv_date
+      AND b~endda >= @lv_date
     WHERE a~pernr = @lv_pernr
       AND a~endda = @lv_endda
     INTO @DATA(ls_wa).
+  ENDSELECT.
   ```
