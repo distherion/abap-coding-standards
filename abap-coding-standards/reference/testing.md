@@ -16,7 +16,7 @@
 - **[P3]** Name the test class by purpose/setup, not "test": `ltc_<public-method>` or `ltc_<common setup>`. Anti-patterns: `ltc_test`, repeating the name of the class under test.
 - **[P3]** Common helper methods (custom asserts, data factories) — in a helper class (`lth_*`), accessed via inheritance or delegation, do not duplicate in each test.
 - **[info]** Mandatory additions: `FOR TESTING`, `RISK LEVEL HARMLESS` (or `DANGEROUS` — only if the test actually writes to the DB/external systems, in a unit — almost never), `DURATION SHORT`/`MEDIUM`/`LONG`. Class `ABSTRACT` — so it cannot be instantiated in production.
-- **[info]** Run in ADT: `Ctrl+Shift+F10` — all tests of the class, `F11` — with coverage, `F9` — preview, `F12` — with test relations (macOS — `Cmd`).
+- **[info]** Run in ADT: `Ctrl+Shift+F10` — all tests of the class, `Ctrl+Shift+F11` — with coverage, `Ctrl+Shift+F9` — preview, `Ctrl+Shift+F12` — with test relations (macOS — `Cmd`).
 
 ## Code under test
 
@@ -25,7 +25,7 @@
 
 ## Injecting test doubles
 
-- **[P2]** Dependency inversion via the constructor: dependencies are passed into the constructor. Setter injection — no (allows overriding a dependency halfway). FRIENDS injection (reaching into private fields after `NEW`) — no (bypasses constructor initialization, breaks on rename).
+- **[P2]** Dependency inversion via the constructor: dependencies are passed into the constructor. Setter injection — only for dependencies that are genuinely optional or configured per-instance (per `classes.md`); it must not be a way to swap a required dependency halfway or bypass the constructor. FRIENDS injection (reaching into private fields after `NEW`) — no (bypasses constructor initialization, breaks on rename).
 - **[P3]** Test doubles — `cl_abap_testdouble=>create( 'zif_x' )` + `configure_call( ... )->returning( ... )`, shorter and clearer than a hand-written stub class.
 - **[P2]** `TEST-SEAM`/`TEST-INJECTION` — a temporary workaround for legacy, not a permanent solution (invasive, tangled in private dependencies). New code — no test seam.
 - **[P2]** `LOCAL FRIENDS` — only to call the `CREATE PRIVATE` constructor of the tested class with a test double. Do not reach through it into private members for mock data (fragile).
