@@ -117,7 +117,7 @@ abap-coding-standards/
 
 **Официальные источники SAP**
 
-- [Clean ABAP — SAP styleguides](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md)
+- [Clean ABAP — SAP styleguides](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md) · [ABAP Code Reviews — SAP styleguides](https://github.com/SAP/styleguides/blob/main/abap-code-review/ABAPCodeReview.md)
 - [SAP Help Portal](https://help.sap.com) · [Документация ABAP Keyword 7.50 (ABAPDocu)](https://help.sap.com/doc/abapdocu_750_index_htm/7.50/en-US/index.htm) · [SAP Support Notes / База знаний](https://support.sap.com/en/my-support/knowledge-base.html)
 
 **Статический анализ и инструменты**
@@ -131,6 +131,7 @@ abap-coding-standards/
 - [SAP-samples/abap-oo-basics](https://github.com/SAP-samples/abap-oo-basics) — основы ООП
 - [SAP-samples/abap-cheat-sheets](https://github.com/SAP-samples/abap-cheat-sheets) — синтаксис ABAP кратко, с исполняемыми демо-примерами
 - [SchwarzIT/abap_oo_patterns](https://github.com/SchwarzIT/abap_oo_patterns) — паттерны проектирования ООП
+- [ilyakaznacheev/abap-best-practice](https://github.com/ilyakaznacheev/abap-best-practice) — список общих принципов чистого ABAP
 - [dotabap.org](https://dotabap.org) — каталог open-source проектов ABAP
 
 ## Вклад

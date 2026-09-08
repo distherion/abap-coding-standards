@@ -11,6 +11,7 @@
 - **[info]** `MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH ...` (dynamic message) requires the exception class to implement `IF_T100_DYN_MSG`; a static `MESSAGE eNNN(class)` needs only `IF_T100_MESSAGE`. `WITH` fills `msgv1..4` only with `IF_T100_DYN_MSG`.
 - **[info]** Exception class constructor: `previous TYPE REF TO cx_root OPTIONAL` (copy the signature only into a `CX_ROOT` descendant; the `!` before a parameter is cosmetic — do not write it by hand).
 - **[P2]** Wrap others' exceptions (`cx_reca_symsg` and other `cx_*` of external components) in your own `zcx_*` — do not let them leak into your code.
+- **[P3]** Handle an exception as close as possible to where it is raised — at the level whose context already has enough information. Neither propagate deeper than needed nor catch early without a purpose: an early catch followed by a re-raise is noise, an early catch that swallows is a defect (see the empty-catch rule below).
 - **[P1]** Fail fast: check preconditions at the start of the method.
 - **[P2]** Write under a lock: `ENQUEUE_*` (enqueue server, not a DB lock) + check (`foreign_lock`); `DEQUEUE_*` at the end, in all branches, including `CLEANUP`.
 - **[P2]** HR OM/PA — via classes: `set_exclusive_lock`/`remove_exclusive_lock`; release locks on **every** path — success, error and especially in `CLEANUP` (CLEANUP does not run on the normal success path or after a `CATCH` already handled the error — release explicitly on each branch). Write — trial pattern: `start_trial` → `approve_trial`+`flush(no_commit=abap_false)` / `discard_trial` in `CATCH`. (Interface `if_hrpa_masterdata`, class `cl_hrpa_masterdata`; verify signatures in SE24.)
@@ -19,6 +20,7 @@
 - **[P2]** Synchronous `CALL FUNCTION ... DESTINATION` (RFC): handle `SYSTEM_FAILURE`/`COMMUNICATION_FAILURE` — an unhandled network/system error silently leaves the operation incomplete. (Errors of parallel tasks — `parallel.md`.)
 - **[P2]** One logical operation = one `COMMIT WORK` at the end, after all checks. COMMIT "in chunks" — only in mass loading. (Splitting an LUW into independent `COMMIT`s — P1, see SKILL.md "Exception to downgrade".)
 - **[P2]** User messages — only via message class SE91 (class/number as literals — otherwise where-used in SE91 disappears) or text elements `TEXT-xxx`; not a literal. Message parameters — `&1..&4`.
+- **[info]** If message attributes are passed implicitly (variables `sy-msgid`/`sy-msgno`/…, e.g. from an exception), keep a static anchor so the message stays in the where-used list: `IF 1 = 2. MESSAGE e123(abc) INTO sy-msgli. ENDIF.` (class/number as literals, see above) — then the message class/number is discoverable from SE91.
 - **[P1]** An empty `CATCH` (immediately `ENDTRY`) is forbidden — swallowing an error: handle the exception or do not catch at all.
 
 # Update task and V1/V2
