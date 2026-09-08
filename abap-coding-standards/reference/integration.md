@@ -1,4 +1,4 @@
-# Integration: BDC, memory, BAdI
+# Integration: BDC, memory, BAdI, RFC/HTTP
 
 ## Batch input / CALL TRANSACTION (BDC)
 
@@ -22,6 +22,18 @@
 ## BOPF
 
 - **[info]** BOPF (Business Object Processing Framework; Fiori/transactional apps on NetWeaver) owns the business data via its API. Do not read/write BOPF tables directly — only through the framework (node instances, `retrieve_by_association`, the modify + determination/validation/action stack): direct DB access bypasses the buffer and the model logic. Verify the BOPF scope in SE24 (`IF_BOPF_*`) on the target system before relying on it.
+
+## Remote communication (RFC / HTTP)
+
+- **[info]** RFC interface contract of a remote-enabled FM (ABAPDocu "RFC Restrictions"): IMPORTING/EXPORTING/CHANGING parameters are passed **by value**, TABLES implicitly by value; parameter types must be DDIC or predefined ABAP types (no local type-group types, no reference types). Because of pass-by-value there is no access to the caller's intermediate results during a synchronous RFC — the FM must return everything in its results (TABLES are the exception).
+- **[P1]** Every synchronous and asynchronous RFC call performs a **database commit** — do not place sRFC/aRFC between Open SQL statements that open or close a DB cursor (a cursor SELECT loop plus an RFC inside would close the cursor). Exceptions: update tasks, where the RFC does not trigger a commit.
+- **[P1]** In transactional RFC (tRFC/qRFC/bgRFC): `COMMIT WORK` and `ROLLBACK WORK` must **not** be executed inside a unit/LUW, and no implicit database commit can be triggered there.
+- **[P2]** In a remotely called FM, do not execute statements that close the RFC session/connection: `LEAVE PROGRAM`, `SUBMIT` without `RETURN`.
+- **[P1]** The RFC interface supports only **classic** exceptions — a class-based exception raised in the remote FM is not transported and becomes the predefined classic `SYSTEM_FAILURE`. Handle the predefined exceptions (`SYSTEM_FAILURE`, `COMMUNICATION_FAILURE`, and `RESOURCE_FAILURE` with pRFC): ABAPDocu "RFC Exceptions" strongly recommends handling all of them — an unhandled communication failure breaks the chain silently.
+- **[P2]** Destinations: static destinations are configured in SM59; dynamic destinations are created via `cl_dynamic_destination` and get the `%%` prefix — such destinations "must never be added to programs from external sources" (ABAPDocu "RFC Destination"). Do not build a destination from unchecked external input; validate/whitelist the destination name.
+- **[info]** Trusted-system RFC logon requires the RFC authorization (S_RFCACL); anonymous logon is only allowed for system function modules; the privileged users `DDIC`/`SAP*` cannot be used as anonymous RFC logon users (ABAPDocu `CALL FUNCTION - RFC`, logon error codes).
+- **[P3]** bgRFC instead of tRFC for new transactional calls — ABAPDocu `CALL FUNCTION - RFC`: "Background RFC (bgRFC) is the enhanced successor technology of transactional RFC (tRFC)... strongly recommended that bgRFC be used instead of tRFC." (bgRFC mechanics — `parallel.md`.)
+- **[info]** ABAP as an HTTP client — `cl_http_client=>create( host = ... service = ... )`, then `send`/`receive` with a `sy-subrc` check after each and `get_last_error` for diagnostics, `close` at the end; the proxy must be configured in SICF (ABAPDocu "ABAP as HTTP Client"). HTTPS/TLS specifics depend on the SSL client configuration of the server — verify on the target system.
 
 ## Transport release (review gate)
 

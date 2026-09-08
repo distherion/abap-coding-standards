@@ -73,5 +73,7 @@ Open only the file relevant to the task topic:
 | `reference/style.md` | Language and style, names, booleans, built-ins, version (not 7.50), formatting |
 | `reference/odata.md` | OData (SEGW / Gateway) |
 | `reference/files-io.md` | File I/O in ABAP (DATASET, gui_upload/download, encodings, JSON/XML) |
-| `reference/integration.md` | Integration: batch input (BDC), memory (ABAP/SAP/Shared), BAdI |
+| `reference/integration.md` | Integration: batch input (BDC), memory (ABAP/SAP/Shared), BAdI, RFC/HTTP |
+| `reference/ddic.md` | ABAP Dictionary objects: table keys, buffering, append structures, domains/data elements |
+| `reference/alv.md` | Output with ALV (SAP List Viewer), classic lists |
 | `reference/local-editing.md` | Local editing of `.abap` files (encoding, block balance) |

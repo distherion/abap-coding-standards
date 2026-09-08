@@ -1,0 +1,8 @@
+# Output with ALV (SAP List Viewer)
+
+- **[P2]** Classic lists in productive programs are obsolete — use ALV (SAP List Viewer) instead (ABAPDocu: "Classic lists should no longer be used in live application programs. Use SAP List Viewer (ALV) instead of classic lists.").
+- **[P3]** If a classic list stays for legacy, avoid the obsolete constructs in it: obsolete formatting, obsolete calculations, obsolete list events and obsolete spooling (ABAPDocu "Obsolete Statements in List Processing").
+- **[info]** ALV stack (verify exact API in SE24/F1 on the target system): for read-only simple lists — the SALV model (`cl_salv_table` factory, no manual field catalog); for interactive/full-grid features — `cl_gui_alv_grid` in a `cl_gui_docking_container`; SAP GUI technology, prepares a dynpro screen.
+- **[P3]** Derive the output columns from the output structure (SALV columns / `lvc_s_fcat` from the DDIC type) instead of a hand-built field list and hand-set column texts — dictionary texts (data element labels) are the single source.
+- **[P3]** Screen preparation is part of PBO/dialog: build the output data and the ALV control in a class method, not inline in the module (see `style.md`, "Screens and events"). ALV events (toolbar, double-click, buttons) — in separate event-handler classes with injected dependencies, no business logic in the event blocks (see `classes.md`).
+- **[P3]** Accessibility (see `style.md`): column headers via dictionary texts, enough label/short text, no color-only marks; respect variant/layout support where the team relies on it.
