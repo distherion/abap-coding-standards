@@ -6,12 +6,14 @@
 - **[P3]** **No mixing of equivalent spellings** — pick one alternative per construct and use it consistently (comparison operators `=`/`<>` vs `EQ`/`NE`; modern vs legacy statement variants, see the next bullet).
 - **[P3]** **No obsolete statements** — where 7.50 has a modern replacement, use it (ABAPDocu "Obsolete Language Elements", Clean ABAP). Concrete replacements — in this section (`MOVE` → `=`, `CREATE OBJECT` → `NEW`), in `data.md` (`REFRESH` → `CLEAR`, `MOVE-CORRESPONDING`, `TABLES`/`NODES`/`WITH HEADER LINE`) and `open-sql.md` (unescaped host variables).
 - **[P3]** **Strings/operators**: templates `|...|` and `&&` instead of `CONCATENATE`/`STRING`; `MOVE` → `=`, `TRANSLATE` → `to_upper`/`to_lower`; `#EC` → pragmas `##` where the check has one (`##NO_TEXT`, `##INCLUDED`, …); keep the legacy `#EC CI_*` pseudo-comment for cross-statement checks that still have no `##` equivalent in 7.50.
+- **[P3]** String literals — backtick `` `...` `` (type `string`) instead of `'...'` (type `c`, fixed): no redundant CHAR↔STRING conversion and no doubt about the exact type (note `strlen( 'abc   ' ) ≠ strlen( \`abc   \` )`, see `data.md`).
 - **[P3]** There is no `ENUM` in ABAP 7.50. Instead of an enum — constants in an `INTERFACE` (`zif_xxx=>c_value`), used directly, without `INTERFACES zif_xxx` in the class; do not use an enumeration class (a class with `CONSTANTS`) when an interface suffices.
-- **[P3]** Regular expressions — only when simple checks are not enough. Prefer `find`, `CS`/`NS`, `CO`/`CN`, `CA`/`NA`; when a regex is needed — `regex` (POSIX; the `pcre` dialect appeared only in **7.55**, NOT in 7.50); build a complex regex from named constants, not a raw literal.
+- **[P3]** Regular expressions — only when simple checks are not enough. Prefer `find`, `CS`/`NS`, `CO`/`CN`, `CA`/`NA`; when a regex is needed — `regex` (POSIX; the `pcre` dialect appeared only in **7.55**, NOT in 7.50); build a complex regex from named constants, not a raw literal. Do not compile a regex per call/in a loop — precompile once (`cl_abap_regex`) and reuse; avoid catastrophic backtracking (nested quantifiers like `(a+)+` — a ReDoS on long input); anchor with `^`/`$` when a full match is intended.
 - **[P3]** Constants instead of magic numbers; group constants in `BEGIN OF … END OF` blocks. Name a constant by its **meaning**, not by the literal it holds: `lc_storage_class` for `'C123'`, not `lc_c123` — renaming a value into a same-named literal adds no information (Clean ABAP: "constants also need descriptive names").
 - **[P3]** Comments via `"`, not `*`. Comment the "why", not the "what". No commented-out code and no auto-signatures.
 - **[P2]** **Comments only in English.** Russian in comments is forbidden (Cyrillic is allowed only in string literals, e.g. `|Мужской|`).
 - **[P3]** Do not add manual versioning (`" ticket ABC ++ Start/End` around a piece): the version control system tracks versions, the reason — in the transport text. `TODO`/`FIXME`/`XXX` — only with initials.
+- **[P3]** Comment before the statement it relates to; no end-of-block comments (`ENDIF. " END OF IF` — the block structure says it). Delete unused code instead of commenting it out. ABAP Doc — only for public APIs, not for internal methods/attributes.
 
 # Names
 
@@ -22,6 +24,7 @@
 - **[P3]** Collections — plural (`lt_employees`, not `lt_employee`).
 - **[P3]** One word — one concept (not `get`/`read`/`fetch` for one action).
 - **[P3]** Prefixes — SAP convention, we keep them (a deliberate rejection of Clean ABAP's "no prefixes"): parameters `iv_`/`is_`/`it_`/`ir_` (import), `ev_`/`es_`/`et_`/`er_` (export), `cv_`/`cs_`/`ct_` (changing), `rv_`/`rs_`/`rt_` (returning); locals `lv_`/`ls_`/`lt_`/`lo_`/`lr_`/`lf_`; attributes `mv_`/`ms_`/`mt_`/`mo_`/`mr_`.
+- **[P3]** Development object names — only in English (`abap-best-practice`, Clean ABAP); search in the solution domain (computer-science terms: queue, tree) and the problem domain (business terms: account, ledger); names must be pronounceable; names of design patterns — only when the pattern is really implemented (`file_factory` only if it is a factory).
 - **[info]** **Name limits** (SAP constraints): DB table (transparent table, DDIC) — 16; local internal table — 30; global class/interface — 30; program (report/include) — 40; FM — 30; function group — 26 (generates `SAPL<fg>`/`L<fg>TOP`); message class — 20; package — 30 (`Z`/`Y` or namespace); domain / data element / structure / table type / view / search help — 30; field/component — 30 (up to BASIS 7.02 — 16); lock object — 16 (name with `E`, generates `ENQUEUE_`/`DEQUEUE_`). The namespace prefix `/xxx/` counts toward the limit.
 - **[P2]** New objects — only `Z`/`Y` or namespace `/xxx/`; do not create in the SAP range (`A`–`X`) — conflict on upgrade/import of packages.
 - **[P1]** Do not name methods/classes after built-in functions (`lines`, `strlen`, `line_exists`, `to_upper`, `condense`, `substring`) — a call inside the class would go to your method, not the built-in function. (Note: `value`/`cond`/`switch` are **not** reserved — they can be names, only the readability/semantics matters.)
@@ -32,6 +35,8 @@
 - **[P1]** Booleans from conditions — `xsdbool( )`: returns `c(1)`, compare with `abap_true`/`abap_false`. `boolc( )` returns `string` (`X`/space) — do not compare with `abap_true`/`abap_false` (the `c`↔`string` conversion gives a wrong result). `boolx( bool = ... bit = ... )` — a bit by number.
 - **[P3]** Positive conditions (`IS NOT` instead of `NOT IS`); `CASE` instead of `ELSE IF`.
 - **[P3]** Complex conditions (`IF a AND b AND c`) — extract into a predicate method `is_...` with a telling name.
+- **[P3]** Predicative call of a boolean method: `IF is_valid( ).` / `IF NOT can_archive( ).` — the condition reads like a phrase; a method called in a condition must be free of side effects (called for its result, not its effect).
+- **[info]** ABAP does **not** short-circuit `AND`/`OR`: both sides are always evaluated. Do not rely on `a AND b` to protect `b` from evaluation (`lt_itab[ i ] IS NOT INITIAL AND lt_itab[ i ]-f = x` still evaluates the second side and raises) — guard with a nested `IF`.
 - **[info]** `WHEN OTHERS` in `CASE` — only last (otherwise it shadows the following `WHEN`, a syntax error).
 
 # Built-in functions
@@ -43,6 +48,7 @@
 # Screens and events
 
 - **[P2]** No business logic in dialog modules (`PBO`/`PAI` of a Dynpro) and event blocks (`INITIALIZATION`, `START-OF-SELECTION`, `END-OF-SELECTION`, `AT SELECTION-SCREEN...`, `AT LINE-SELECTION`, `GET`, `TOP-OF-PAGE`): the module/event reads the screen/selection state and delegates to a class method. Business rules in a class are testable and do not depend on the UI; a dialog module must not compute or write direct.
+- **[P3]** Selection screens / PAI: labels — from text elements, not literals; defaults — set and reset in `INITIALIZATION`; validation — in `AT SELECTION-SCREEN`/PAI with `MESSAGE TYPE 'E'` before the action proceeds; cross-field checks — a class method, not inline in the module.
 - **[P3]** Accessibility of the UI: do not convey information by color alone (color-blind users); icons — a tooltip; table columns — a header; input/output fields — a meaningful label; fields grouped into frames with a meaningful title. Verified device-independent behavior helps people with impairments and is a compliance factor.
 
 # Version: what is NOT in 7.50

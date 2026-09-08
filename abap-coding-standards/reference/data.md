@@ -13,6 +13,7 @@
 - **[P2]** Translatable text — a separate **text table** (`*T`) with a foreign key to the base table, not text columns in the main table. A text table supports SE63 translation, offers several lengths (short/medium/long) for one object and adds a value list / maintenance-view text column automatically. UI texts — a message class or `TEXT-` symbols, not literals (see `errors.md`).
 - **[P3]** One original language for all objects of a project (e.g. English) — easier maintenance and translation; the phrase lengths differ across languages, leave space for them in the UI.
 - **[P3]** Do not show system fields in the UI (`sy-uzeit`, `sy-datum`, `sy-host`, `sy-sysid`, `sy-dbsys`, …) — technical values; only business data reaches the user.
+- **[P2]** No `CONSTANTS` for user-facing text — text constants cannot be translated (SE63). The user receives only translatable sources: a message class or `TEXT-` symbols, OTR — never literals or constants in code (see `errors.md`).
 
 # Numbers
 
@@ -51,6 +52,7 @@
 - **[P3]** Constructor operators (`VALUE`, `COND`, `SWITCH`, `CORRESPONDING`, `CONV`, `NEW`, `REDUCE`, `FILTER`, `REF`) — type via `#` when it is inferred from context: a typed variable/field, a typed method parameter, a table row. Explicit type (`COND type( )`, `VALUE type( )`) — only when the context gives no type: inline `DATA(...)` with no surrounding type, a generic parameter `c`/`n`/`x`, ambiguity (`DATA(x) = COND abap_bool( ... )`, `DATA(lt) = VALUE infty_tab( ... )`).
 - **[P1]** Do not delete table rows inside a loop (index shift → skips/duplicates). Collect keys and remove after the loop with one `DELETE ... WHERE key IN lt_range` — but `lt_range` must be a **selection table** (RANGE with `sign`/`option`/`low`/`high`), not a flat list of values; an **empty** range makes the condition always true (deletes **all** rows) — guard it. Or mark rows in the loop via a field-symbol (clear key fields) and delete `DELETE ... WHERE key IS INITIAL` — the second way only if living rows always have the key filled.
   Legal (do not flag): `DELETE lt_x.` / `DELETE … INDEX sy-tabix` of the current row inside its own `LOOP AT lt_x`.
+- **[P2]** Do not modify the *whole* table inside its own loop — `SORT`, bulk `DELETE ... WHERE key IN ...`, `MODIFY`/`INSERT` affecting many rows inside `LOOP AT lt_x`: rows shift/duplicate and the iteration reads mutated data. Collect keys and apply the bulk change after the loop (same pattern as the `DELETE` rule above).
 - **[P3]** No `DEFAULT KEY` — set a meaningful key.
 - **[info]** `REFRESH itab` is obsolete — `CLEAR itab`. For a table with a header line (legacy) `CLEAR itab[]` clears the body, `CLEAR itab` — the header; `REFRESH` — only the body.
 - **[P2]** Internal table type — by access pattern: `HASHED` (large, filled at once, read only by full key) / `SORTED` (order needed or read by partial key) / `STANDARD` (small, index access, `APPEND`); no key needed — `WITH EMPTY KEY`.

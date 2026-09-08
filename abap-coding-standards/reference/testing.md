@@ -9,6 +9,8 @@
 - **[P3]** Coverage — a tool for finding forgotten tests, not a KPI. A test without an assert for a percentage — worse than no test (masks a non-trivial refactor). < 100% with honest tests is normal.
 - **[P3]** Test code is more readable than production: it is documentation. Keep tests simpler than production, follow the same conventions.
 - **[P2]** No "manual testing" via `$TMP` copies and test reports checked by eye — automate into a unit test with an assert.
+- **[P2]** Repeatable: the same input gives the same output — no dependence on the current date/time, session state, free DB order or random data unless the behavior itself is time-dependent (then that dependence is the declared case).
+- **[P2]** Isolated: tests must not affect each other — each runs in a clean state, no shared live data and no order dependence; a failure of one test must not corrupt another (see the static-state/`TEARDOWN` note).
 
 ## Test classes
 
