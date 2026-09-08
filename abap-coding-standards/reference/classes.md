@@ -9,7 +9,7 @@
 - **[P3]** A static method via `zcl_x=>method( )`, not `lo_obj->method( )`; singleton — only when multiple instances make no sense.
 - **[P3]** Constants/types — via `zif_x=>c_*`/`cl_x=>ty_*`, not `me->`.
 - **[P2]** Do not mix stateful and stateless in one class.
-- **[P1]** `STATIC`/class attributes — not for request state: a work process lives between calls, a static from one request leaks into the next. Keep in statics only constants and non-session cache; session state — in instance attributes or local variables, or reset it explicitly.
+- **[P1]** `STATIC`/class attributes — not for request state: they live in the **internal session** (per main program instance), not "in a work process" — a static from one request can be seen by the next one in the same session. Keep in statics only constants and non-session cache; session state — in instance attributes or local variables, or reset it explicitly.
 - **[P2]** Public methods in integration/service classes — via an interface (`zif_*`) mandatory (substitution with a test double). In simple value-object/domain classes, public without an interface is acceptable if the class is `FINAL` and substitution is not expected.
 - **[P2]** Do not bloat a class (anti-God-object): as the number of methods/attributes grows — split by responsibility.
 - **[P2]** Do not allow cyclic class dependencies (A→B→A): they break DI and test-double substitution, hinder tests. Dependencies — one way; break the cycle with an interface/relocating responsibility.
@@ -35,14 +35,14 @@
 - **[P3]** The `RETURNING` parameter — uniform across the project (`result` or `rv_*` per the prefix convention); the name does not repeat the type/value. `PREFERRED PARAMETER` — rarely, do not introduce for one call site.
 - **[P2]** A method whose behavior changes by a flag or `IS SUPPLIED` (a boolean parameter, except `SET_*`, and extra `OPTIONAL` parameters) does two things — split into separate methods: `update( )` / `update_and_save( )`, not `update( do_save = abap_true )`.
 - **[P2]** Many related parameters (fields of an object, context dependencies, fields of an error) — group into a `ty_*` structure and pass one `is_*`/`cs_*`, not a dozen scalars. An `OPTIONAL` scalar in a structure loses `IS SUPPLIED` — distinguish an optional field with a flag (`has_*`).
-- **[P2]** Large structures/tables in `IMPORTING` without `VALUE` (or `REFERENCE`) are passed by reference; with `VALUE` — a full copy per call. If the parameter does not change — do not take it by value.
+- **[P2]** Large structures/tables in `IMPORTING` without `VALUE` (or `REFERENCE`) are passed by reference; with `VALUE` — passed by value with copy-on-write (the data is not physically copied until the callee writes). If the parameter does not change — do not take it by value.
 - **[P1]** An `IMPORTING` parameter (without `VALUE`) — a reference to the caller's data: do not modify it and do not pass it into another procedure's `CHANGING` (silently corrupts others' data, like `hrtnnnn_tab = it_attrib`). You may modify only an object via `REF TO`. Need to modify the input table/structure — copy to a local variable.
 - **[P1]** An `EXPORTING` parameter without `VALUE`: guarantee a write on all branches or `CLEAR` at the start — otherwise the caller gets stale data; `VALUE`/`RETURNING` are empty by definition, do not clear them. Input and output are the same variable → redesign to `RETURNING` (an early `CLEAR` would eat the input).
 
 # Method body
 
 - **[P3]** One task per method, one level of abstraction. "3–5 lines" — a guideline, not a hard limit: do not split for the sake of splitting (wrapper methods, growth in public/interface methods, worse tracing). A method > ~20–30 lines or with several abstraction levels — consider splitting.
-- **[P2]** `CHECK` and `EXIT` — only inside loops (`LOOP`/`DO`/`WHILE`); outside loops — `IF … RETURN` (`EXIT` outside a loop leaves the processing block).
+- **[P2]** `CHECK`/`EXIT` in a loop — legal (loop control). **Outside** a loop they exit the processing block (both forms are legal ABAP — `CHECK`/`EXIT` have documented "exits processing blocks" variants). The style point is readability: for a method guard prefer explicit `IF … RETURN/RAISE`; do not flag `CHECK` outside a loop as an error (at most a style suggestion).
 - **[P3]** Exceptions — for errors, not for control flow.
 - **[P2]** Keep complexity in check: cyclomatic complexity of a method ≤ ~15, nesting depth ≤ ~5; beyond — extract branches/guard conditions into separate methods.
 - **[P2]** Remove dead code: unreachable after `RETURN`/`RAISE EXCEPTION`/`EXIT`/unconditional `CONTINUE`; `RETURN.` as the last statement of a method — also redundant (the method ends anyway); unused local variables/parameters/methods/types — remove too.
