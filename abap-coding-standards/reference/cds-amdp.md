@@ -10,6 +10,7 @@
 - **[P2]** Do not duplicate logic in view and ABAP: computed fields, filters, aggregates — in CDS where possible; in ABAP — only what CDS lacks.
 - **[P3]** Naming: `Z_I_` — interface/basic view (reusable, pure model), `Z_C_` — consumption view (over `Z_I_`, `@ObjectModel.*`/`@UI.*` annotations for Fiori/OData, no business logic in the select).
 - **[P3]** Layering: one **basic view** (`Z_I_`) per DB table / table function; upper-layer views access the basic views, not the DB tables directly — the model's real field names, associations and annotations live in one place, and consumer changes cannot silently bypass them.
+- **[P2]** No business logic in CDS — not only in consumption views: business conditions/rules in the select of a basic/intermediate view couple the model to the current process, break overlying views when they change and are untestable with ABAP Unit. A view stays a data model (row selection, associations); computations and conditions — in ABAP or AMDP, where they are unit-testable.
 - **[info]** Input parameters (`with parameters`) — for parameterized reuse.
 
 ## AMDP

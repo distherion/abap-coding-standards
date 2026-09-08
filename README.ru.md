@@ -125,6 +125,7 @@ abap-coding-standards/
 **Статический анализ и инструменты**
 
 - [SAP/code-pal-for-abap](https://github.com/SAP/code-pal-for-abap) — проверки Clean ABAP в SCI/ATC
+- [SAP/abap-cleaner](https://github.com/SAP/abap-cleaner) — правила очистки в ADT (100+ проверок); источник правил цепочек, устаревших операторов и форматирования в `style.md`/`data.md`/`classes.md`
 - [larshp/abapOpenChecks](https://github.com/larshp/abapOpenChecks) — открытые проверки SCI/ATC (7.40 SP02+)
 - [abaplint/abaplint](https://github.com/abaplint/abaplint) · [rules.abaplint.org](https://rules.abaplint.org) — линтер для репозиториев abapGit
 - [abapGit/abapGit](https://github.com/abapGit/abapGit) — Git-клиент для ABAP; основа `reference/local-editing.md` и abapGit-сериализации, которую читают abaplint/SonarQube в CI

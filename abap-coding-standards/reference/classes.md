@@ -17,6 +17,7 @@
 - **[P2]** Do not use `MESSAGE`/list-processing in a global class: the class does not write to the UI. `MESSAGE ... INTO DATA( ... )` to populate the message list/`sy-` fields is fine (see `logging.md`). Errors — exceptions (`zcx_*`); output — at the top level/via a message list (`logging.md`).
 - **[P2]** New code — classes/methods: do not create new `FORM` and non-RFC `FM` (exception — RFC/BAPI wrappers, standard HR mechanisms and update function modules used with `CALL FUNCTION ... IN UPDATE TASK`, see `errors.md`); prefer classes over FM — even when the logic reduces to calls to standard FM/BAPI: wrap them in a class method, not your own FM.
 - **[P2]** Do not create macros `DEFINE … END-OF-DEFINITION` — code-in-a-line: inside a macro you cannot set a breakpoint, tracing is blind; extract to a method. (Leave legacy `DEFINE` alone on review.)
+- **[P3]** No empty section blocks in a class definition — `PUBLIC`/`PROTECTED`/`PRIVATE SECTION` with no members are removed; keep only the sections that contain declarations.
 
 # Signatures and method calls
 
@@ -39,14 +40,18 @@
 - **[P2]** Large structures/tables in `IMPORTING` without `VALUE` (or `REFERENCE`) are passed by reference; with `VALUE` — passed by value with copy-on-write (the data is not physically copied until the callee writes). If the parameter does not change — do not take it by value.
 - **[P1]** An `IMPORTING` parameter (without `VALUE`) — a reference to the caller's data: do not modify it and do not pass it into another procedure's `CHANGING` (silently corrupts others' data, like `hrtnnnn_tab = it_attrib`). You may modify only an object via `REF TO`. Need to modify the input table/structure — copy to a local variable.
 - **[P1]** An `EXPORTING` parameter without `VALUE`: guarantee a write on all branches or `CLEAR` at the start — otherwise the caller gets stale data; `VALUE`/`RETURNING` are empty by definition, do not clear them. Input and output are the same variable → redesign to `RETURNING` (an early `CLEAR` would eat the input).
+- **[P3]** `CHANGING` — only to update in place some fields of an already-filled existing variable; do not use it to initially fill a previously empty variable (that is `EXPORTING`/`RETURNING`/a functional call). Do not "return" the result via `CHANGING` when the intent is a fresh value.
 
 # Method body
 
 - **[P3]** One task per method, one level of abstraction. "3–5 lines" — a guideline, not a hard limit: do not split for the sake of splitting (wrapper methods, growth in public/interface methods, worse tracing). A method > ~20–30 lines or with several abstraction levels — consider splitting.
+- **[P2]** A method focuses either on the happy path or on error handling, not both (Clean ABAP): validate the preconditions first, then let the "sunny" path run to its end; error branches scattered through the middle of the main flow make the happy path unreadable.
 - **[P2]** `CHECK`/`EXIT` in a loop — legal (loop control). **Outside** a loop they exit the processing block (both forms are legal ABAP — `CHECK`/`EXIT` have documented "exits processing blocks" variants). The style point is readability: for a method guard prefer explicit `IF … RETURN/RAISE`; do not flag `CHECK` outside a loop as an error (at most a style suggestion).
 - **[P3]** Exceptions — for errors, not for control flow.
 - **[P2]** Keep complexity in check: cyclomatic complexity of a method ≤ ~15, nesting depth ≤ ~5; beyond — extract branches/guard conditions into separate methods.
+- **[P3]** Flatten nesting with early exits: guard conditions up front (`IF NOT ... RETURN`/`CONTINUE`/`CHECK`) instead of wrapping the whole body in ever-deeper `IF` — the remaining happy path is linear (see `errors.md` fail-fast).
 - **[P2]** Remove dead code: unreachable after `RETURN`/`RAISE EXCEPTION`/`EXIT`/unconditional `CONTINUE`; `RETURN.` as the last statement of a method — also redundant (the method ends anyway); unused local variables/parameters/methods/types — remove too.
+- **[P3]** No needless `CLEAR`: a local variable is initially empty — a `CLEAR` at the start/end of a method is dead code; keep it only before piecemeal filling of a structure (consecutive component assignments) or before reuse in a loop.
 - **[P2]** Identical conditions in `IF`/`ELSEIF` (identical conditions) or the same body in different branches (identical contents) — a sign of an error/duplicate: collapse or rewrite.
 - **[P2]** An empty `IF`/`ELSE`/`ELSEIF`/`CASE` branch (only `ENDIF`/`ENDCASE`, no statements) — either a redundant `IF` or a lost condition. Remove the empty branch or fill it.
 
