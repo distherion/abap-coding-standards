@@ -7,22 +7,22 @@
 
 [Русский](README.ru.md) | [English](README.md)
 
-A dense, opinionated checklist that teaches an AI agent how to write and review
-**classic ABAP 7.50 (NetWeaver)** code the way an experienced ABAP reviewer would:
-coding standards, Open SQL, LUW/transactions, error handling, security, data types,
-classes, testing, parallelism, CDS/AMDP, OData, file I/O and integration.
+A checklist for writing and reviewing
+**classic ABAP 7.50 (NetWeaver)** code with AI agents: coding standards, Open SQL,
+LUW/transactions, error handling, security, data types, classes, testing,
+parallelism, CDS/AMDP, OData, file I/O and integration.
 
 > **Target:** classic ABAP 7.50 (NetWeaver). **Not** ABAP Cloud / S/4HANA RAP.
 
 ## Why this skill
 
-- **Clean ABAP + field experience.** Rules distilled from the SAP styleguides and
-  verified SAP documentation, seasoned with real-world gotchas and non-obvious API caveats.
+- **Clean ABAP + practical experience.** Rules from the SAP styleguides and verified
+  SAP documentation, with real-world pitfalls and non-obvious API details.
 - **Severity-aware reviews.** Every rule is tagged `[P0]`–`[P3]` so the agent reports
   findings in order of importance (blockers first, minor style notes last).
-- **Lazy reference loading.** Rules are split into `reference/*.md` by topic; the agent
-  loads only the file relevant to the current task instead of the whole checklist.
-- **Tool-agnostic.** Pure Markdown — works in Claude Code, OpenCode, Codex, Cursor,
+- **Load on demand.** Rules are split into `reference/*.md` by topic; the agent
+  opens only the file relevant to the current task instead of the whole checklist.
+- **Tool-independent.** Pure Markdown — works in Claude Code, OpenCode, Codex, Cursor,
   and any LLM via a system prompt.
 
 ## How it works
@@ -45,7 +45,7 @@ Review findings are reported in order P0 → P3:
 ## Install
 
 The skill is plain Markdown (`SKILL.md` + `reference/`) — the common agent-skill layout.
-Copy the `abap-coding-standards/` folder into your tool's skills directory, or wire it up per tool:
+Copy the `abap-coding-standards/` folder into your tool's skills directory, or install it per tool:
 
 ### Claude Code
 
@@ -72,7 +72,7 @@ Or reference the folder without copying, in `opencode.json`:
 
 ### Codex
 
-Codex has no skill loader — paste the rules into `AGENTS.md` or a custom prompt/agent.
+Newer Codex versions load skills from `.codex/skills/` (or via `AGENTS.md`); if yours has no skill loader — paste the rules into `AGENTS.md` or a custom prompt/agent.
 
 ### Cursor
 
@@ -113,7 +113,7 @@ abap-coding-standards/
 
 ## Sources
 
-The rules are distilled from the sources below. Links are also inlined in `SKILL.md`.
+The rules are distilled from the sources below. Links are kept here only — the skill itself (`SKILL.md`/`reference/`) is deliberately link-free (see `CONTRIBUTING.md`).
 
 **SAP official**
 

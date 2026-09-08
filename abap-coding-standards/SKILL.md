@@ -12,7 +12,7 @@ lang: en
 
 ## Review vs own code
 - **Own code** = code you write/edit yourself (new diff, new methods) — follow all rules strictly.
-- **Others' code** = existing legacy / review without edits — `SELECT *`, `WITH DEFAULT KEY`, case (pretty-printer) are not critical; treat as P3.
+- **Others' code** = existing legacy / review without edits — a factual error or a wrong result is a finding at its **usual severity**; only purely stylistic rules (`SELECT *`, `WITH DEFAULT KEY`, case/formatting/pretty-printer) are relaxed to P3. The author of the code does not change the fact of a defect.
 - Unclear whose it is — ask, do not decide blindly.
 
 ## Refactoring legacy
@@ -28,10 +28,10 @@ Assign each finding to one level and report in order P0 → P3.
 - **P1 — Critical**: wrong result (races, lost/corrupted money, wrong write, unhandled error). Must fix.
 - **P2 — Substantial**: slow (`SELECT` in loop, O(n²)), fragile, hard to test. Worth fixing — can be a separate task.
 - **P3 — Minor**: style (naming, case, formatting, readability); others' code — per "Review vs own code". Mention in passing or skip.
-- **Downgraded priority — P3 (mention in passing, do not raise to P1/P0 without explicit context):** writes without `ENQUEUE/DEQUEUE` — when there is no sign of a real race; `COMMIT` in chunks — only in deliberate mass loading where each chunk is self-consistent and an interruption between chunks loses no money/data.
+- **Downgraded priority — P3 (mention in passing, do not raise to P1/P0 without explicit context):** writes without `ENQUEUE/DEQUEUE` — only when concurrent access is provably impossible in the scenario (single-user dialog/report); the absence of an **observed** race is not proof of safety — with any real concurrency a lock-free write stays P1/P2. `COMMIT` in chunks — only in deliberate mass loading where each chunk is self-consistent and an interruption between chunks loses no money/data.
 - **Exception to downgrade — broken LUW (P1):** one logical money/data operation split into independent `COMMIT`s so that an interruption/failure leaves a half-saved state — a payment "deleted" while REGUH rows stay active; headers committed without line items; `CATCH` swallows the error while `COMMIT` still runs. This is not "COMMIT in a loop", it is a broken LUW — P1, must fix. (COMMIT/LUW rules — in `errors.md`.)
 
-**Markers** at the start of a rule: `[P#]` — severity on review; `[info]` — not a finding, a fact (syntax, platform, name limits), do not report; `[behavior]` — an instruction to the agent (how to search, when to ask, what to edit), not a code finding. Own code — follow all rules regardless of the marker.
+**Markers** at the start of a rule: `[P#]` — severity on review; `[info]` — background knowledge (syntax, platform, name limits), not a finding — do not report, but its claims still need the same verification as any other reference ("Finding sources"); `[behavior]` — an instruction to the agent (how to search, when to ask, what to edit), not a code finding. Own code — follow all rules regardless of the marker.
 
 ## Review flow
 1. Verify every reference against its definition in the repo — see "Context — don't invent".
@@ -52,7 +52,7 @@ Always look for logic errors and potential problems — even those not in the ru
 - **[behavior]** Unsure about an API or standard SAP behavior — see "Finding sources".
 
 ## Automated checks
-- **[info]** Run static analyzers as a complement to manual review, not a replacement — they do not see logic/races/LUW, that is still manual review.
+- **[info]** Run static analyzers as part of the review: they reliably catch their defined check set (naming, syntax, common anti-patterns). Manual review is additionally required for logic, races, LUW and defects the analyzers do not check.
 - **[behavior]** Before writing your own utility/library, check the ABAP open-source ecosystem — a ready one probably already exists.
 
 ## Reference map

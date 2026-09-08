@@ -11,13 +11,13 @@
 # Numbers
 
 - **[P1]** Integer division `/` rounds commercially (round half up): `4 / 5 = 1`, `2 / 3 = 1`, `5 / 2 = 3`. The integer part without rounding comes from `DIV`: `4 DIV 5 = 0`, `7 DIV 3 = 2`. Do not confuse them — it gives a wrong result.
-- **[P1]** `DIV`/`MOD` — non-negative remainder: `-7 DIV 3 = -3`, `-7 MOD 3 = 2` (invariant `n = (n DIV d)*d + (n MOD d)`, the sign of the remainder is the sign of the divisor).
-- **[P1]** Division by zero: `x / 0` (x≠0), `x DIV 0`, `x MOD 0` → `CX_SY_ZERODIVIDE`; only `0 / 0 = 0` without exception.
-- **[P1]** `**` returns type `f` (binary float, precision loss) — for an integer power use `ipow( base = ... exp = ... )`.
+- **[P1]** `DIV`/`MOD` — non-negative remainder: `-7 DIV 3 = -3`, `-7 MOD 3 = 2` (invariant `n = (n DIV d)*d + (n MOD d)`; the remainder is **always** non-negative and < |divisor| — `7 MOD -3 = 1`, `-7 MOD -3 = 2`).
+- **[P1]** Division by zero: `x / 0` (x≠0), `x DIV 0`, `x MOD 0` → `CX_SY_ZERODIVIDE`; a zero dividend (`0 / 0`, `0 DIV 0`, `0 MOD 0`) — no exception, result is 0.
+- **[P1]** `**` returns `f` (binary float, precision loss) when no operand is a decimal floating point type; if an operand is `decfloat16/34` — calc type is `decfloat34`. For an integer power use `ipow( base = ... exp = ... )`.
 - **[P1]** Integer overflow (`2147483647 + 1`) → `CX_SY_ARITHMETIC_OVERFLOW` (catchable).
 - **[P1]** Inline `DATA(x) = lv_packed + 1` with a `p` operand gives `p LENGTH 8 DECIMALS 0` — the fraction is lost. For fractions declare the type explicitly: `DATA(x) TYPE p LENGTH 8 DECIMALS 2`.
 - **[P1]** `EXACT` on digit loss: `CX_SY_CONVERSION_ROUNDING` (fraction/digits lost), `CX_SY_CONVERSION_OVERFLOW` (overflow) — catch it or guarantee the range.
-- **[info]** Rounding: `round( val = ... dec = ... [mode = ...] )`, `ceil`/`floor`/`trunc`/`frac`; `nmin`/`nmax` — min/max of arguments; `cl_abap_math` constants (`pi`, `e`, `min_*`/`max_*` for decfloat/integers).
+- **[info]** Rounding: `round( val = ... dec = ... [mode = ...] )`, `ceil`/`floor`/`trunc`/`frac`; `nmin`/`nmax` — min/max of arguments; `cl_abap_math` — numeric limits (`min_*`/`max_*` per type, e.g. `cl_abap_math=>min_int4`, `=>max_decfloat34`); the mathematical constants `pi`/`e` are **not** in the 7.50 class — use `acos( -1 )`.
 
 # Date and time
 
@@ -27,7 +27,7 @@
 - **[P1]** `CONVERT TIME STAMP ... TIME ZONE ... INTO DATE ... TIME ...` sets `sy-subrc`: `8` = invalid timezone, `12` = invalid timestamp — check immediately (see `errors.md`).
 - **[P1]** `EXACT d( lv_str )` validates the date — on an invalid one it raises `CX_SY_CONVERSION_NO_DATE`; `CONV d( )` does not validate.
 - **[info]** Timezone: server — `sy-datum`/`sy-uzeit`; user's local — `sy-datlo`/`sy-timlo`/`sy-zonlo`; user timezone — `cl_abap_context_info=>get_user_time_zone( )`.
-- **[P3]** Timestamp arithmetic — prefer `cl_abap_tstmp`, not manual recomputation of `timestampl`/`CONVERT`: difference — `cl_abap_tstmp=>subtract( tstmp1 = ... tstmp2 = ... )` (→ seconds), add — `cl_abap_tstmp=>add( tstmp = ... secs = ... )` (verify exact names/parameters in SE24). Local↔UTC — `systemtstmp_syst2utc`/`systemtstmp_utc2syst`; DST — `systemtstmp_syst2loc`/`systemtstmp_loc2syst`/`is_double_interval`. `GET TIME STAMP` returns UTC. `CONVERT TIME STAMP` only converts, does not add. In DB `SELECT` — built-ins `tstmp_add_seconds( )`/`tstmp_seconds_between( )`/`tstmp_is_valid( )` (7.50).
+- **[P3]** Timestamp arithmetic — prefer `cl_abap_tstmp`, not manual recomputation of `timestampl`/`CONVERT`: difference — `cl_abap_tstmp=>subtract( tstmp1 = ... tstmp2 = ... )` (→ seconds), add — `cl_abap_tstmp=>add( tstmp = ... secs = ... )` (verify exact names/parameters in SE24). Local↔UTC — `systemtstmp_syst2utc`/`systemtstmp_utc2syst`; DST — `systemtstmp_syst2loc`/`systemtstmp_loc2syst`/`is_double_interval`. `GET TIME STAMP` returns UTC. `CONVERT TIME STAMP` only converts, does not add. In DB `SELECT` — built-ins `tstmp_add_seconds( )`/`tstmp_seconds_between( )`/`tstmp_is_valid( )` — **NOT in 7.50**: they are not part of the 7.50 built-in functions (added later, HANA context); stay on `cl_abap_tstmp`/`CONVERT TIME STAMP`.
 
 # Variables and internal tables
 
@@ -38,11 +38,11 @@
 - **[P2]** Shadowed variable: a local (`lv_*`/`DATA(x)`) named like an attribute/global hides it — the wrong one is read. Do not name locals like attributes.
 - **[P2]** Do not use `sy-sysid`/`sy-sysuuid`/`sy-host` in business logic (ties to system/host). Identifiers — via configuration/constants.
 - **[P3]** Initialization with a named type: `DATA(lv_x) = VALUE ty_type( ).` instead of `DATA lv_x TYPE ty_type.`; anonymous types (`TABLE OF … WITH KEY`, `WITH DEFAULT KEY`) cannot be declared inline — use `TYPE` there.
-- **[P3]** `INSERT INTO TABLE` — when uniqueness matters (`SORTED`/`HASHED`; a duplicate — `sy-subrc = 4`); `APPEND` — for `STANDARD` (insertion order, duplicates allowed). `line_exists()` instead of `READ TABLE … NO FIELDS`; `LOOP AT … WHERE` instead of a nested `IF`.
+- **[P3]** `INSERT INTO TABLE` — when uniqueness matters (`SORTED`/`HASHED`): a duplicate of the **primary key** — `sy-subrc = 4` (also: `sy-tabix` is not set); a duplicate of a **unique secondary key** — handleable exception `CX_SY_ITAB_DUPLICATE_KEY` (handle it or the program aborts); `INSERT` of a block where any row would duplicate — runtime error, not `sy-subrc`. `APPEND` — for `STANDARD` (insertion order, duplicates allowed). `line_exists()` instead of `READ TABLE … NO FIELDS`; `LOOP AT … WHERE` instead of a nested `IF`.
 - **[info]** `REF #( )` instead of `GET REFERENCE OF` for data references.
 - **[P3]** `MOVE-CORRESPONDING` → `CORRESPONDING #( ... )`: explicit `MAPPING`/`EXCEPT`, the contract is visible, safer when the structure changes.
 - **[P3]** Constructor operators (`VALUE`, `COND`, `SWITCH`, `CORRESPONDING`, `CONV`, `NEW`, `REDUCE`, `FILTER`, `REF`) — type via `#` when it is inferred from context: a typed variable/field, a typed method parameter, a table row. Explicit type (`COND type( )`, `VALUE type( )`) — only when the context gives no type: inline `DATA(...)` with no surrounding type, a generic parameter `c`/`n`/`x`, ambiguity (`DATA(x) = COND abap_bool( ... )`, `DATA(lt) = VALUE infty_tab( ... )`).
-- **[P1]** Do not delete table rows inside a loop (index shift → skips/duplicates). Collect keys and remove after the loop with one `DELETE ... WHERE key IN lt_keys`; or mark rows in the loop via a field-symbol (clear key fields) and delete `DELETE ... WHERE key IS INITIAL` — the second way only if living rows always have the key filled.
+- **[P1]** Do not delete table rows inside a loop (index shift → skips/duplicates). Collect keys and remove after the loop with one `DELETE ... WHERE key IN lt_range` — but `lt_range` must be a **selection table** (RANGE with `sign`/`option`/`low`/`high`), not a flat list of values; an **empty** range makes the condition always true (deletes **all** rows) — guard it. Or mark rows in the loop via a field-symbol (clear key fields) and delete `DELETE ... WHERE key IS INITIAL` — the second way only if living rows always have the key filled.
   Legal (do not flag): `DELETE lt_x.` / `DELETE … INDEX sy-tabix` of the current row inside its own `LOOP AT lt_x`.
 - **[P3]** No `DEFAULT KEY` — set a meaningful key.
 - **[info]** `REFRESH itab` is obsolete — `CLEAR itab`. For a table with a header line (legacy) `CLEAR itab[]` clears the body, `CLEAR itab` — the header; `REFRESH` — only the body.
@@ -51,11 +51,11 @@
 - **[P1]** An internal table index is 1-based: `itab[ 0 ]` / `READ TABLE ... INDEX 0` is always wrong (no such row). Never treat `0` as a valid index.
 - **[P3]** A missing row is normal: `VALUE #( itab[ key ] OPTIONAL )` (no row → `IS INITIAL`) or `VALUE #( itab[ key ] DEFAULT ls_dflt )` instead of `TRY`/`CATCH cx_sy_itab_line_not_found`.
 - **[P2]** No double read: not `line_exists( )` + a repeated `READ`. If the row must exist — `TRY` + `CATCH cx_sy_itab_line_not_found` and your own exception.
-- **[P2]** `sy-tabix` is valid only immediately after `READ TABLE`/`LOOP` (index of the current row). The next statement over the table (`READ`, `SORT`, `DELETE`, `APPEND`) overwrites it — save the index to a local variable before changes.
+- **[P2]** `sy-tabix` is set only by `READ TABLE`/`LOOP AT` (and a few index statements); `DELETE` does **not** set it; after `ENDLOOP` its previous value is restored; a `READ` by hash key sets 0, an unsuccessful binary search may set the insertion position. Do not read `sy-tabix` after arbitrary statements over the table — save the index to a local variable before changes.
 - **[P2]** Nested `LOOP AT` over two internal tables (searching the second's row for each first) — O(n²): move the read to `READ TABLE … WITH KEY`/`itab[ key ]`, or build an index table in one pass (`key → sy-tabix`).
 - **[P3]** Grouping — `LOOP AT itab INTO ... GROUP BY ...` + `LOOP AT GROUP` (7.40+), not control-level `AT NEW`/`AT END OF` (those require a pre-`SORT`, non-obvious).
 - **[P2]** Reading a row — always `ASSIGNING <fs>` (or `REFERENCE INTO`/`itab[ key ]`): no copy, editing `<fs>` edits the table. `INTO data(ls)` — only when a copy is exactly what you need (mutating separately from the table). `READ TABLE ... INTO <fs>` is forbidden — writes under the field-symbol instead of reassigning.
-- **[P2]** `COLLECT` — only for `HASHED` or `SORTED ... WITH UNIQUE KEY` (for others — degradation to linear search).
+- **[P2]** `COLLECT` — for `HASHED` (hash key) and `SORTED` (binary search; a non-unique key is a warning, not broken); for `STANDARD` it degrades to (temp-hash or) a linear search — avoid it there.
 - **[P1]** `BINARY SEARCH` — only on a table sorted by its key fields (re-`SORT` after `APPEND`); `DELETE ADJACENT DUPLICATES` — only after `SORT` by the `COMPARING` fields.
 
 # Strings
@@ -64,7 +64,7 @@
 - **[P1]** `find( )` not found → `-1` (not `0`, not an exception); `occ = -1` — the last occurrence from the end; `occ = 0` — invalid (`CX_SY_STRG_PAR_VAL`).
 - **[P1]** `replace( )`: `occ = 0` — replace ALL occurrences, default (`occ = 1`) — only the first. Without `sub`/`pcre` (only `off`/`len`) — replace a span by position; insert without replace — `insert( val = ... sub = ... off = ... )`.
 - **[P2]** Stripping/padding leading zeros in NUMC keys (`PERNR`, `MATNR`, …) — `|{ x ALPHA = OUT }|`/`CONVERSION_EXIT_ALPHA_OUTPUT` (strip) and `|{ x ALPHA = IN }|`/`CONVERSION_EXIT_ALPHA_INPUT` (pad), not `SHIFT ... LEFT DELETING LEADING '0'` (fragile: does not distinguish "all zeros" from an empty string, breaks symmetry with reverse ALPHA input).
-- **[P1]** `strlen( )` counts trailing spaces only in `string`: `strlen( 'abc   ' ) = 3` (`c` literal, fixed length), `strlen( \`abc   \` ) = 6` (`string` literal). `numofchar( )` counts no spaces anywhere.
+- **[P1]** `strlen( )` counts trailing spaces only in `string`: `strlen( 'abc   ' ) = 3` (`c` literal, fixed length), `strlen( \`abc   \` ) = 6` (`string` literal). `numofchar( )` counts characters except **trailing** blanks (leading/internal spaces count — `numofchar( \`  a b\` ) = 5`).
 
 # Domains (fixed values) and GUID
 

@@ -5,7 +5,7 @@
 ## Principles
 
 - **[P2]** Test the public, not the private: a test on the public interface (`zif_*`/public methods) survives refactoring. A need to test `PRIVATE`/`PROTECTED` — a signal: the concept wants to be a separate class with its own interface, or the domain logic is buried in glue code (BOPF action, `*_DPC_EXT`).
-- **[P2]** Type the code under test by interface, not class: `DATA cut TYPE REF TO zif_x.`, not `TYPE REF TO zcl_x.`
+- **[P2]** Type the code under test by interface, not class: `DATA cut TYPE REF TO zif_x.`, not `TYPE REF TO zcl_x.` — for integration/service classes that declare an interface (per `classes.md`); a simple `FINAL` value/domain class without an interface is tested directly by its class type.
 - **[P3]** Coverage — a tool for finding forgotten tests, not a KPI. A test without an assert for a percentage — worse than no test (masks a non-trivial refactor). < 100% with honest tests is normal.
 - **[P3]** Test code is more readable than production: it is documentation. Keep tests simpler than production, follow the same conventions.
 - **[P2]** No "manual testing" via `$TMP` copies and test reports checked by eye — automate into a unit test with an assert.
@@ -16,7 +16,7 @@
 - **[P3]** Name the test class by purpose/setup, not "test": `ltc_<public-method>` or `ltc_<common setup>`. Anti-patterns: `ltc_test`, repeating the name of the class under test.
 - **[P3]** Common helper methods (custom asserts, data factories) — in a helper class (`lth_*`), accessed via inheritance or delegation, do not duplicate in each test.
 - **[info]** Mandatory additions: `FOR TESTING`, `RISK LEVEL HARMLESS` (or `DANGEROUS` — only if the test actually writes to the DB/external systems, in a unit — almost never), `DURATION SHORT`/`MEDIUM`/`LONG`. Class `ABSTRACT` — so it cannot be instantiated in production.
-- **[info]** Run in ADT: `Ctrl+Shift+F10` — all tests of the class, `F11` — with coverage, `F9` — preview, `F12` — with test relations (macOS — `Cmd`).
+- **[info]** Run in ADT: `Ctrl+Shift+F10` — all tests of the class, `Ctrl+Shift+F11` — with coverage, `Ctrl+Shift+F9` — preview, `Ctrl+Shift+F12` — with test relations (macOS — `Cmd`).
 
 ## Code under test
 
@@ -25,7 +25,7 @@
 
 ## Injecting test doubles
 
-- **[P2]** Dependency inversion via the constructor: dependencies are passed into the constructor. Setter injection — no (allows overriding a dependency halfway). FRIENDS injection (reaching into private fields after `NEW`) — no (bypasses constructor initialization, breaks on rename).
+- **[P2]** Dependency inversion via the constructor: dependencies are passed into the constructor. Setter injection — only for dependencies that are genuinely optional or configured per-instance (per `classes.md`); it must not be a way to swap a required dependency halfway or bypass the constructor. FRIENDS injection (reaching into private fields after `NEW`) — no (bypasses constructor initialization, breaks on rename).
 - **[P3]** Test doubles — `cl_abap_testdouble=>create( 'zif_x' )` + `configure_call( ... )->returning( ... )`, shorter and clearer than a hand-written stub class.
 - **[P2]** `TEST-SEAM`/`TEST-INJECTION` — a temporary workaround for legacy, not a permanent solution (invasive, tangled in private dependencies). New code — no test seam.
 - **[P2]** `LOCAL FRIENDS` — only to call the `CREATE PRIVATE` constructor of the tested class with a test double. Do not reach through it into private members for mock data (fragile).
@@ -38,7 +38,7 @@
 - **[P3]** The name reflects given/expected. The skill's convention — `should_[behavior]_[condition]` (see `classes.md`); Clean ABAP — descriptive (`reads_existing_entry`, `throws_on_invalid_key`, `detects_invalid_input`). Both are fine, the main thing — not `test_...` and not cryptic (`get_attributes_wo_w`). If the name does not fit in 30 chars — explain in the first line of the method.
 - **[P3]** The given-when-then pattern (= Arrange-Act-Assert): initialization ("given"), exactly one call to the tested ("when"), the check ("then"). Separate visually (blank lines) or extract into sub-methods.
 - **[P2]** "when" — exactly one call. Several calls = unclear focus, cannot find the cause of a failure.
-- **[P3]** `TEARDOWN` — only if actually needed (cleaning DB/external resources in an integration test). Resetting `cut`/test doubles is redundant — `setup` will overwrite.
+- **[P3]** `TEARDOWN` — only if actually needed (cleaning DB/external resources in an integration test). Resetting `cut`/test doubles is redundant — `setup` will overwrite. Note: `setup` re-creates instance state on every test but does **not** reset class-level (static) data, buffers and global switches — reset those explicitly (`TEARDOWN` or in `setup`) or tests leak state into each other.
 
 ## Test data
 

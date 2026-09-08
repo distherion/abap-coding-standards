@@ -4,8 +4,8 @@
 
 ## CDS Views (DDL)
 
-- **[info]** A CDS view — a `.ddls` file (DDL Source, SE11/ADT). One view — one `define view Z_I_... as select from ...`.
-- **[P2]** Mandatory annotations: `@AbapCatalog.sqlViewName` (the SQL name, under which the view is visible in Open SQL) and `@AbapCatalog.compiler.compareFilter`. The technical CDS name — `Z_I_`/`Z_C_`, the SQL view — `Z...` without `/`.
+- **[info]** A CDS view — a `.ddls` file (DDL Source, ADT; SE11 shows the generated SQL view). One view — one `define view Z_I_... as select from ...`.
+- **[P2]** Mandatory annotation: `@AbapCatalog.sqlViewName` (the SQL name under which the view is visible in Open SQL). `@AbapCatalog.compiler.compareFilter` — a compiler **performance option** (filter comparison), not mandatory. The technical CDS name — `Z_I_`/`Z_C_`, the SQL view — `Z...` without `/`.
 - **[P2]** Fields and types — as in DDIC; the key — `key` on fields. Associations (`association [0..1]` / `[1..*]`) instead of JOIN in the main select; unfold via path expressions (`_Assoc.field`) or `$expand`.
 - **[P2]** Do not duplicate logic in view and ABAP: computed fields, filters, aggregates — in CDS where possible; in ABAP — only what CDS lacks.
 - **[P3]** Naming: `Z_I_` — interface/basic view (reusable, pure model), `Z_C_` — consumption view (over `Z_I_`, `@ObjectModel.*`/`@UI.*` annotations for Fiori/OData, no business logic in the select).
@@ -13,7 +13,7 @@
 
 ## AMDP
 
-- **[P2]** AMDP — a class with a method `BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT OPTIONS READ-ONLY` (without `READ-ONLY` — for writes). Called only from an ABAP class; not directly visible in Open SQL.
+- **[P2]** AMDP — a class with a method `BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT OPTIONS READ-ONLY` (without `READ-ONLY` — for writes). The class must implement `IF_AMDP_MARKER_HDB` and declare the tables it uses in `USING`. Called only from an ABAP class (or another AMDP); not directly visible in Open SQL. No automatic client (`MANDT`) handling in the SQLScript body — several texts/filter by client explicitly where needed.
 - **[P1]** An AMDP method does not `COMMIT`/`ROLLBACK` and does not write in Open SQL: all input/output — via `IMPORTING`/`EXPORTING`/`CHANGING` tables; the body — pure SQLScript.
 - **[P2]** AMDP — for mass operations where Open SQL is inefficient (aggregating millions of rows, complex calculations over a set). A simple selection/single access — normal Open SQL, not AMDP.
 - **[P2]** Security: the class/method name — from static code; build SQLScript without concatenating external input (otherwise injection). Parameters — via `:name` binding.
