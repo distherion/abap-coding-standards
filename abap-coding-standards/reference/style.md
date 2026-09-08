@@ -13,7 +13,7 @@
 - **[P3]** Comments via `"`, not `*`. Comment the "why", not the "what". No commented-out code and no auto-signatures.
 - **[P2]** **Comments only in English.** Russian in comments is forbidden (Cyrillic is allowed only in string literals, e.g. `|Мужской|`).
 - **[P3]** Do not add manual versioning (`" ticket ABC ++ Start/End` around a piece): the version control system tracks versions, the reason — in the transport text. `TODO`/`FIXME`/`XXX` — only with initials.
-- **[P3]** Comment before the statement it relates to; no end-of-block comments (`ENDIF. " END OF IF` — the block structure says it). Delete unused code instead of commenting it out. ABAP Doc — only for public APIs, not for internal methods/attributes; when a public method is documented — document all its parameters and `RAISING` exceptions (one line each), no partial documentation.
+- **[P3]** Comment before the statement it relates to; no end-of-block comments (`ENDIF. " END OF IF` — the block structure says it). ABAP Doc — only for public APIs, not for internal methods/attributes; when a public method is documented — document all its parameters and `RAISING` exceptions (one line each), no partial documentation.
 
 # Names
 

@@ -1,6 +1,6 @@
 # abap-coding-standards
 
-**Стандарты кодирования ABAP 7.50 — скилл для написания и ревью классического кода ABAP с помощью AI-агентов.**
+**Стандарты написания кода ABAP 7.50 — скилл для написания и ревью классических программ ABAP с помощью AI-агентов.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/distherion/abap-coding-standards)](https://github.com/distherion/abap-coding-standards/releases)
@@ -8,7 +8,7 @@
 [Русский](README.ru.md) | [English](README.md)
 
 Чеклист для написания и ревью **классического ABAP 7.50 (NetWeaver)** с помощью
-AI-агентов: стандарты кодирования, Open SQL, LUW/транзакции, обработка ошибок,
+AI-агентов: стандарты написания кода, Open SQL, LUW/транзакции, обработка ошибок,
 безопасность, типы данных, классы, тестирование, параллелизм, CDS/AMDP, OData,
 файловый ввод/вывод и интеграция.
 
