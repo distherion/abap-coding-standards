@@ -34,7 +34,7 @@
 
 # Built-in functions
 
-- **[info]** String (7.40+): `find`, `find_end`, `find_any_of`, `find_any_not_of`, `count`, `count_any_of`, `count_any_not_of`, `contains`, `contains_any_of`, `contains_any_not_of`, `substring`, `substring_after`, `substring_before`, `substring_from`, `substring_to`, `replace`, `insert`, `condense`, `segment`, `shift_left`, `shift_right`, `repeat`, `reverse`, `match`, `matches`, `distance`, `to_upper`, `to_lower`, `to_mixed`, `from_mixed`, `concat_lines_of`, `cmin`, `cmax`, `numofchar`, `strlen`, `xstrlen` (`escape` — from 7.53).
+- **[info]** String (7.40+): `find`, `find_end`, `find_any_of`, `find_any_not_of`, `count`, `count_any_of`, `count_any_not_of`, `contains`, `contains_any_of`, `contains_any_not_of`, `substring`, `substring_after`, `substring_before`, `substring_from`, `substring_to`, `replace`, `insert`, `condense`, `segment`, `shift_left`, `shift_right`, `repeat`, `reverse`, `match`, `matches`, `distance`, `to_upper`, `to_lower`, `to_mixed`, `from_mixed`, `concat_lines_of`, `cmin`, `cmax`, `numofchar`, `strlen`, `xstrlen`, `escape`.
 - **[info]** Numeric (7.40+): `abs`, `sign`, `ceil`, `floor`, `trunc`, `frac`, `round`, `rescale`, `ipow`, `nmin`, `nmax`, `sqrt`, `sin`/`cos`/`tan`, `asin`/`acos`/`atan`, `sinh`/`cosh`/`tanh`, `exp`, `log`, `log10`.
 - **[info]** Predicates `contains( )`, `matches( )`, `line_exists( itab[ ... ] )` return `abap_true`/`abap_false`; `line_exists` does not raise `CX_SY_ITAB_LINE_NOT_FOUND`.
 
