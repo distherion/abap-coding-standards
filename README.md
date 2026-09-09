@@ -98,7 +98,9 @@ abap-coding-standards/
         ├── logging.md       # logging (cl_reca_message_list, Application Log)
         ├── data.md          # types and DDIC, numbers, date/time, tables, strings
         ├── open-sql.md      # Open SQL, performance, buffer, client, JOIN
+        ├── ldb.md           # logical databases (LDB-PNP/PNPCE), HR infotype reads
         ├── security.md      # security, dynamic SQL, authorization, HR infotypes
+        ├── hr.md            # HR PA/OM/PD, payroll, cl_hrpa_*/cl_hrbas_* framework
         ├── classes.md       # classes, signatures, method body, DI
         ├── testing.md       # ABAP Unit: principles, test classes, doubles, assertions
         ├── parallel.md      # parallelism, bgRFC/aRFC, background jobs
@@ -106,11 +108,12 @@ abap-coding-standards/
         ├── dynamic-rtti.md  # dynamic programming, RTTI/RTTS
         ├── style.md         # language and style, names, booleans, formatting
         ├── odata.md         # OData (SEGW / Gateway)
+        ├── odata-v4.md      # OData v4 (SEGW V4) specifics
         ├── files-io.md      # file I/O (DATASET, gui_upload/download, encodings, JSON/XML)
         ├── integration.md   # batch input (BDC), memory, BAdI, RFC/HTTP
         ├── ddic.md          # ABAP Dictionary: table keys, buffering, append structures, domains/DE
         ├── alv.md           # output with ALV (SAP List Viewer), classic lists
-        └── odata-v4.md    # OData v4 (SEGW V4) specifics
+        └── dynpro.md        # classic Dynpro screens: PBO/PAI, CHAIN/FIELD, LOOP AT SCREEN
 ```
 
 ## Sources
