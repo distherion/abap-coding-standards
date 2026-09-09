@@ -33,6 +33,8 @@ Assign each finding to one level and report in order P0 → P3.
 
 **Markers** at the start of a rule: `[P#]` — severity on review; `[info]` — background knowledge (syntax, platform, name limits), not a finding — do not report, but its claims still need the same verification as any other reference ("Finding sources"); `[behavior]` — an instruction to the agent (how to search, when to ask, what to edit), not a code finding. Own code — follow all rules regardless of the marker.
 
+**Citing a rule in a review report:** P0/P1 rules carry a stable slug in a trailing HTML comment (`<!-- rule: check-subrc-immediately -->`, invisible in render). Cite as `file.md#slug` — e.g. `errors.md#check-subrc-immediately`. Slugs are unique per file and survive reordering; P2/P3/info have no slug — cite them point-in-time as `file.md:line`.
+
 ## Review flow
 1. Verify every reference against its definition in the repo — see "Context — don't invent".
 2. Look for logic errors/races/edge cases beyond the checklist (see "Logic above rules").
@@ -71,7 +73,9 @@ Open only the file relevant to the task topic:
 | `reference/logging.md` | Logging (`cl_reca_message_list`, Application Log) |
 | `reference/data.md` | Types and DDIC, numbers, date/time, variables and internal tables, strings |
 | `reference/open-sql.md` | Open SQL, performance, buffer, client, JOIN |
+| `reference/ldb.md` | Logical database (LDB-PNP/PNPCE), HR infotype reads |
 | `reference/security.md` | Security, dynamic SQL, authorization, HR infotypes |
+| `reference/hr.md` | HR PA/OM/PD/payroll: `cl_hrpa_*`/`cl_hrbas_*` framework, `cl_hr_t*`, `RH_*`, `PYXX_READ_PAYROLL_RESULT` |
 | `reference/classes.md` | Classes, signatures and method calls, method body, DI |
 | `reference/testing.md` | Unit testing (ABAP Unit): principles, test classes, double injection, test methods, data, assertions |
 | `reference/parallel.md` | Parallelism, bgRFC/aRFC, background jobs |
@@ -84,3 +88,4 @@ Open only the file relevant to the task topic:
 | `reference/integration.md` | Integration: batch input (BDC), memory (ABAP/SAP/Shared), BAdI, RFC/HTTP |
 | `reference/ddic.md` | ABAP Dictionary objects: table keys, buffering, append structures, domains/data elements |
 | `reference/alv.md` | Output with ALV (SAP List Viewer), classic lists |
+| `reference/dynpro.md` | Classic Dynpro screens: PBO/PAI, CHAIN/FIELD, ok_code, LOOP AT SCREEN |
