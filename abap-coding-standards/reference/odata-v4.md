@@ -17,4 +17,4 @@
 - **[info]** Navigation/deep read — `io_request->get_navigation_path( )` and the todo flag `process-deep_busi_data`; deep payload access via `/iwbep/cl_v4_request_info_pro`/`/iwbep/cl_v4_response_info_pro` (`get_base_request_info( )->get_service_group_id( )`/`get_busi_data( )`, `get_base_response_info( )->get_busi_data_pro_sub_tree( )`).
 - **[info]** Deep-insert: `io_request->get_data_description_tree_list( IMPORTING et_data_desc_root_node = lt_stack )`, walk via `get_children( )`, on each node `get_todos( )` + `set_is_done( )`.
 - **[info]** `$batch`/changeset in v4 — via the interface `/IWBEP/IF_V4_DP_BATCH`, not `CHANGESET_BEGIN/PROCESS` from v2.
-- **[info]** Registering a v4 service — `/IWBEP/V4_ADMIN*` (registration) and `/IWFND/V4_ADMIN*` (publication); `/IWBEP/V4_MAP` is not documented — verify on the system before proposing it.
+- **[info]** Registering a v4 service — `/IWBEP/V4_ADMIN*` (registration) and `/IWFND/V4_ADMIN*` (publication). Do not use `/IWBEP/V4_MAP` — it does not exist (verified on a live system).
