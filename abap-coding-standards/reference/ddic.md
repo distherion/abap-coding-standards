@@ -3,7 +3,7 @@
 ## Database tables and keys
 
 - **[P2]** The primary key is defined at table creation: key fields must be together at the **start** of the table and locked in during activation — later you can only add non-key fields at the end, a new key field cannot be added afterwards. Plan the key (and the client field, for client-dependent tables) before the table goes productive.
-- **[info]** Key field constraints (ABAPDocu "Key Fields of Database Tables"): max 16 key fields, max 900 bytes; the types `FLTP`, `STRING`, `RAWSTRING`, `LCHAR`, `LRAW` (and the obsolete `DF16_SCL`/`DF34_SCL`) are **not allowed** as key fields. A key longer than 120 bytes blocks the table as a base for a lock object and content transport by full key.
+- **[info]** Key field constraints (ABAPDocu "Key Fields of Database Tables"): max 16 key fields, max 900 bytes; the types `FLTP`, `STRING`, `RAWSTRING`, `LCHR`, `LRAW` (and the obsolete `DF16_SCL`/`DF34_SCL`) are **not allowed** as key fields. A key longer than 120 bytes blocks the table as a base for a lock object and content transport by full key.
 - **[P2]** Access must match the key: a table is read/searched by its key or an index, not by random full scans (see `open-sql.md`); make sure the `WHERE` of the typical read is covered by the key or a secondary index (SE11 keys/indexes, ST05).
 
 ## Buffering
@@ -13,7 +13,7 @@
 
 ## Enhancing SAP objects — append structures
 
-- **[P1]** Do not modify the core structure or root include of an SAP table/structure. Enhance SAP objects only via **append structures** in the customer namespace: not a modification, upgrade-safe, the components are appended back after an upgrade.
+- **[P1]** Do not modify the core structure or root include of an SAP table/structure. Enhance SAP objects only via **append structures** in the customer namespace: not a modification, upgrade-safe, the components are appended back after an upgrade. <!-- rule: append-structure-not-modify -->
 - **[info]** Append structures can only be appended to **transparent** tables; not to tables with `LCHR`/`LRAW` (they must stay the last fields). Appended fields can be added to secondary indexes; key fields cannot be appended (must be at the start). A binding of a check table / search help that already exists for a field cannot be changed via the append structure.
 - **[info]** A structure's *enhancement category* determines what can be appended (from "cannot be enhanced" to "any type"). Code that uses offset/length on a flat structure gets a check warning, because a later enhancement can change the offsets (ABAPDocu "Enhancement Category of Structures").
 

@@ -16,7 +16,7 @@
 ## AMDP
 
 - **[P2]** AMDP — a class with a method `BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT OPTIONS READ-ONLY` (without `READ-ONLY` — for writes). The class must implement `IF_AMDP_MARKER_HDB` and declare the tables it uses in `USING`. Called only from an ABAP class (or another AMDP); not directly visible in Open SQL. No automatic client (`MANDT`) handling in the SQLScript body — several texts/filter by client explicitly where needed.
-- **[P1]** An AMDP method does not `COMMIT`/`ROLLBACK` and does not write in Open SQL: all input/output — via `IMPORTING`/`EXPORTING`/`CHANGING` tables; the body — pure SQLScript.
+- **[P2]** An AMDP method does not `COMMIT`/`ROLLBACK` and does not write in Open SQL: all input/output — via `IMPORTING`/`EXPORTING`/`CHANGING` tables; the body — pure SQLScript.
 - **[P2]** AMDP — for mass operations where Open SQL is inefficient (aggregating millions of rows, complex calculations over a set). A simple selection/single access — normal Open SQL, not AMDP.
 - **[P2]** Security: the class/method name — from static code; build SQLScript without concatenating external input (otherwise injection). Parameters — via `:name` binding.
 - **[info]** Exceptions from AMDP: `cx_amdp_error`, `cx_amdp_execution_failed` — catch and wrap in your own `zcx_*` (see `errors.md`).
