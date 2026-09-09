@@ -73,7 +73,7 @@ Open only the file relevant to the task topic:
 | `reference/logging.md` | Logging (`cl_reca_message_list`, Application Log) |
 | `reference/data.md` | Types and DDIC, numbers, date/time, variables and internal tables, strings |
 | `reference/open-sql.md` | Open SQL, performance, buffer, client, JOIN |
-| `reference/ldb.md` | Logical database (LDB-PNP/PNPCE), HR infotype reads |
+| `reference/ldb.md` | Logical database (LDB-PNP/PNPCE/PCH), HR/OM infotype reads |
 | `reference/security.md` | Security, dynamic SQL, authorization, HR infotypes |
 | `reference/hr.md` | HR PA/OM/PD/payroll: `cl_hrpa_*`/`cl_hrbas_*` framework, `cl_hr_t*`, `RH_*`, `PYXX_READ_PAYROLL_RESULT` |
 | `reference/classes.md` | Classes, signatures and method calls, method body, DI |
