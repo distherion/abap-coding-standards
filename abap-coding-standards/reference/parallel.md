@@ -8,7 +8,7 @@
 - **[P2]** Limit the number of tasks, not one per row: split the input into N chunks by key (RANGE), N proportional to the available work processes. A task per record — worse than sequential.
 - **[P3]** For data-parallel loops prefer `cl_abap_parallel` over manual `STARTING NEW TASK`; manual — when you need fine-grained control of tasks.
   ```abap
-  " task class: subclass the ABSTRACT cl_abap_parallel, redefine DO
+  " task class: subclass cl_abap_parallel (concrete, not abstract), redefine DO
   CLASS zcl_x_task DEFINITION INHERITING FROM cl_abap_parallel.
     PUBLIC SECTION.
       METHODS do REDEFINITION.
@@ -25,7 +25,7 @@
   DATA(lo_par) = NEW zcl_x_task( p_num_tasks = 4 ).
   lo_par->run( EXPORTING p_in_tab = lt_in IMPORTING p_out_tab = DATA(lt_out) ).
   ```
-  `p_in_tab` — a table of `xstring` (`EXPORT ... TO DATA BUFFER`); each row of `p_out_tab` carries `RESULT` (xstring → `IMPORT ... FROM DATA BUFFER`), `INDEX`, `TIME`, `MESSAGE` (error/timeout text). Constructor params: `p_num_tasks`/`p_timeout`/`p_percentage`/`p_num_processes`. There is no `get_instance`, no `run_inst`, no `IF_ABAP_PARALLEL` — the abstract base is subclassed and `DO` redefined. Verify signatures in SE24.
+  `p_in_tab` — a table of `xstring` (`EXPORT ... TO DATA BUFFER`); each row of `p_out_tab` carries `RESULT` (xstring → `IMPORT ... FROM DATA BUFFER`), `INDEX`, `TIME`, `MESSAGE` (error/timeout text). Constructor params: `p_num_tasks`/`p_timeout`/`p_percentage`/`p_num_processes` (also `p_local_server`/`p_abort_on_error` — verify the full signature in SE24). `cl_abap_parallel` is a **concrete** class — subclass it and redefine `DO`. In 7.50 the serialized `run( )` above is the API; `run_inst( p_in_tab = ... )` (object-based variant) exists only from 7.54, and `IF_ABAP_PARALLEL` is likewise a 7.54+ interface — neither is available in 7.50. There is no `get_instance`. Verify signatures in SE24.
 - **[P1]** LUW: each RFC task — its own LUW. `COMMIT` inside a task commits only it; the caller's `COMMIT` does NOT commit RFC changes (unless bgRFC). For mass loading in chunks, each chunk must be self-consistent (see "Error handling": COMMIT in chunks, broken LUW). <!-- rule: each-task-own-luw -->
 - **[info]** bgRFC (transactional/queued) — guaranteed exactly-once delivery within the LUW. The class API — below, section "bgRFC".
 - **[P2]** Writing to the same tables from several tasks — ENQUEUE collisions: split by key so tasks do not touch the same rows; otherwise expect and handle `foreign_lock` (see "Error handling").

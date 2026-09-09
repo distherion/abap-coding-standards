@@ -16,7 +16,7 @@
 
 ## BAdI (enhancement framework)
 
-- **[P3]** The new (kernel) BAdI syntax — `GET BADI lo_badi FILTERS filter = lv_value` (no `sy-subrc` from `GET BADI` — handle `cx_badi_not_implemented`/`cx_badi_multiple_implementations` instead) + `CALL BADI lo_badi->method( )`; cleaner than the classic `GET BADI` with a proxy object. For new points — only the new syntax.
+- **[P3]** The new (kernel) BAdI syntax — `GET BADI lo_badi FILTERS filter = lv_value` (no `sy-subrc` from `GET BADI` — handle the class-based exceptions instead: `cx_badi_not_implemented`/`cx_badi_multiply_implemented`; there is no `cx_badi_multiple_implementations`) + `CALL BADI lo_badi->method( )`; cleaner than the classic `GET BADI` with a proxy object. For new points — only the new syntax.
 - **[info]** BAdI **definition** (SE18): the fallback when no active implementation exists is `DEFAULT IGNORE` or `DEFAULT FAIL` in the definition — `DEFAULT FAIL` raises an error for an unimplemented BAdI, `DEFAULT IGNORE` silently does nothing; choose deliberately.
 - **[P2]** Extension point: first a ready BAdI/customer exit; none — an explicit enhancement (source/function/class); an implicit enhancement — last. Do not modify SAP code directly — only via the enhancement mechanism.
 
