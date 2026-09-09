@@ -98,7 +98,7 @@ abap-coding-standards/
         ├── logging.md       # логирование (cl_reca_message_list, Application Log)
         ├── data.md          # типы и DDIC, числа, дата/время, таблицы, строки
         ├── open-sql.md      # Open SQL, производительность, buffer, client, JOIN
-        ├── ldb.md           # логические БД (LDB-PNP/PNPCE), чтение инфотипов HR
+        ├── ldb.md           # логические БД (LDB-PNP/PNPCE/PCH), чтение инфотипов HR/OM
         ├── security.md      # безопасность, динамический SQL, авторизация, инфотипы HR
         ├── hr.md            # HR PA/OM/PD, расчёт зарплаты, фреймворк cl_hrpa_*/cl_hrbas_*
         ├── classes.md       # классы, сигнатуры, тело метода, DI

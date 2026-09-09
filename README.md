@@ -98,7 +98,7 @@ abap-coding-standards/
         ├── logging.md       # logging (cl_reca_message_list, Application Log)
         ├── data.md          # types and DDIC, numbers, date/time, tables, strings
         ├── open-sql.md      # Open SQL, performance, buffer, client, JOIN
-        ├── ldb.md           # logical databases (LDB-PNP/PNPCE), HR infotype reads
+        ├── ldb.md           # logical databases (LDB-PNP/PNPCE/PCH), HR/OM infotype reads
         ├── security.md      # security, dynamic SQL, authorization, HR infotypes
         ├── hr.md            # HR PA/OM/PD, payroll, cl_hrpa_*/cl_hrbas_* framework
         ├── classes.md       # classes, signatures, method body, DI
