@@ -25,7 +25,7 @@
 - **[P3]** One word — one concept (not `get`/`read`/`fetch` for one action).
 - **[P3]** Prefixes — SAP convention, we keep them (a deliberate rejection of Clean ABAP's "no prefixes"): parameters `iv_`/`is_`/`it_`/`ir_` (import), `ev_`/`es_`/`et_`/`er_` (export), `cv_`/`cs_`/`ct_` (changing), `rv_`/`rs_`/`rt_` (returning); locals `lv_`/`ls_`/`lt_`/`lo_`/`lr_`/`lf_`; attributes `mv_`/`ms_`/`mt_`/`mo_`/`mr_`.
 - **[P3]** Development object names — only in English (`abap-best-practice`, Clean ABAP); search in the solution domain (computer-science terms: queue, tree) and the problem domain (business terms: account, ledger); names must be pronounceable; names of design patterns — only when the pattern is really implemented (`file_factory` only if it is a factory).
-- **[info]** **Name limits** (SAP constraints): DB table (transparent table, DDIC) — 16; local internal table — 30; global class/interface — 30; program (report/include) — 30 (40 only for internal SAP tool names with 5-char suffixes); FM — 30; function group — 26 (generates `SAPL<fg>`/`L<fg>TOP`); message class — 20; package — 30 (`Z`/`Y` or namespace); domain / data element / structure / table type / view / search help — 30; field/component — 30 (up to BASIS 7.02 — 16); lock object — 16 (name with `E`, generates `ENQUEUE_`/`DEQUEUE_`). The namespace prefix `/xxx/` counts toward the limit.
+- **[info]** **Name limits** (SAP constraints): DB table (transparent table, DDIC) — 16; view — 16 (letters, digits, underscores, must start with a letter); local internal table — 30; global class/interface — 30; program (report/include) — 30 (40 only for internal SAP tool names with 5-char suffixes); FM — 30; function group — 26 (generates `SAPL<fg>`/`L<fg>TOP`); message class — 20; package — 30 (`Z`/`Y` or namespace); domain / data element / structure / table type / search help — 30; field/component — 30 (up to BASIS 7.02 — 16); lock object — 16 (name with `E`, generates `ENQUEUE_`/`DEQUEUE_`). The namespace prefix `/xxx/` counts toward the limit.
 - **[P2]** New objects — only `Z`/`Y` or namespace `/xxx/`; do not create in the SAP range (`A`–`X`) — conflict on upgrade/import of packages.
 - **[P1]** Do not name methods/classes after built-in functions (`lines`, `strlen`, `line_exists`, `to_upper`, `condense`, `substring`) — a call inside the class would go to your method, not the built-in function. (Note: `value`/`cond`/`switch` are **not** reserved — they can be names, only the readability/semantics matters.) <!-- rule: no-builtin-method-names -->
 
@@ -37,7 +37,7 @@
 - **[P3]** Complex conditions (`IF a AND b AND c`) — extract into a predicate method `is_...` with a telling name.
 - **[P3]** Predicative call of a boolean method: `IF is_valid( ).` / `IF NOT can_archive( ).` — the condition reads like a phrase; a method called in a condition must be free of side effects (called for its result, not its effect).
 - **[info]** ABAP evaluates `AND`/`OR` from left to right with **short-circuit**: once the result is determined by the left side, the right side is not evaluated (ABAPDocu "Logical expressions"). The documentation recommends placing the cheap/usually-false comparison first in an `AND` chain.
-- **[info]** `WHEN OTHERS` in `CASE` — only last (otherwise it shadows the following `WHEN`, a syntax error).
+- **[info]** `WHEN OTHERS` in `CASE` — only last: it must be the final branch (a `WHEN` after it is a syntax error). `WHEN OTHERS` is checked by the syntax check, so "shadowing the following `WHEN`" cannot happen in compiling code — do not flag it as an error or a shadowing defect.
 
 # Built-in functions
 
@@ -58,14 +58,14 @@ The skill targets ABAP 7.50. These features look like 7.40/7.50 but are unavaila
 - Type `utclong`, functions `utclong_current`/`utclong_add`/`utclong_diff`, `CONVERT UTCLONG`, `cl_abap_utclong` — from 7.54.
 - DDIC types `DATN`/`TIMN`/`UTCLONG` — from 7.54 (in 7.50 — `dats`/`tims`/`timestamp`/`timestampl`).
 - Computed assignments `+=`, `-=`, `*=`, `/=`, `&&=` — from 7.54.
-- XCO (`xco_cp=>...`) — only ABAP Cloud, not NetWeaver 7.50.
+- XCO (`xco_cp=>...`) — not available in NetWeaver 7.50 (it ships with ABAP Cloud and on-premise ABAP Platform 2021+/S/4HANA 2021+); in a 7.50 target do not propose it.
 
 # Formatting
 
 - **[P3]** One statement per line.
 - **[P2]** No chained operational statements (`CATCH:`, `WHEN:`, `SELECT`/`UPDATE` chains): each chain element is a separate statement — `CATCH: cx_a, cx_b, cx_c.` is `CATCH cx_a. CATCH cx_b. CATCH cx_c.` and only the last block gets the handler code (the first two catch nothing); `UPDATE scustom SET: f1 = ..., f2 = ... WHERE id = ...` is two `UPDATE`s — the first without a `WHERE` changes all rows. Write one statement per line; exceptions into one block — `CATCH cx_a cx_b cx_c.` (ABAPDocu "Chained Statements").
 - **[P3]** No chains in up-front declarations (`DATA:`/`TYPES:`/`CONSTANTS:`/`FIELD-SYMBOLS:`): one declaration per statement; a chain is allowed only for deliberately related declarations and for `TYPES: BEGIN OF … END OF` (Clean ABAP: "Do not chain up-front declarations").
-- **[P3]** No chained assignments `a = b = c` — in ABAP this is a comparison (`b = c` → `abap_bool` into `a`), not an associative assignment; write separate statements.
+- **[P3]** No chained assignments `a = b = c` — in ABAP this is a **multiple assignment** (the value of `c` is assigned to both `b` and `a`), not a comparison and not an associative chain in the C sense; an inline declaration `DATA(...)` cannot be the destination of a chain. Write separate statements — a chain hides the data flow.
 - **[P3]** Compress: remove extra blank lines, extra assignments.
 - **[P3]** One blank line to separate logical blocks **inside a method**. Between top-level elements of a class the formatter puts 2–3 blank lines (`ENDMETHOD` → `METHOD`, end of `DEFINITION` → `IMPLEMENTATION`) — that is normal, do not compress to one.
 - **[P3]** Close brackets at the end of the line.
@@ -74,7 +74,7 @@ The skill targets ABAP 7.50. These features look like 7.40/7.50 but are unavaila
 - **[P3]** **Punctuation**: no space before a comma and period (`TYPE datum.`, not `TYPE datum .`).
 - **[P3]** **Indentation**: spaces, +2/level; `METHOD`/`ENDMETHOD` — column 0, no leading spaces; no tabs. Write by convention immediately — the diff to abapGit code is clean, do not fight the formatter.
 - **[P3]** **Team formatter settings**: use the team's pretty-printer settings, do not bring your own; do not mass-reformat other people's code — a reformatting diff hides the actual change and blocks the review.
-- **[info]** The `!`-escape before a parameter name in `METHODS`/`INTERFACES` — an abapGit artifact; do not add by hand, it is normal in exports.
+- **[info]** The `!`-escape before a parameter name in `METHODS`/`INTERFACES` — placed by the ABAP pretty printer (case protection); do not add by hand, it is normal in exports.
 - **[P3]** **SELECT formatting**: fields from `SELECT`/`WHERE`/`JOIN` — each on its own line, field names one under another (aligned into a column). `ON` — on its own line at the level of `AND`, condition fields in the column:
   ```abap
   SELECT
