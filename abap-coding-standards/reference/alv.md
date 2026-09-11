@@ -1,7 +1,7 @@
 # Output with ALV (SAP List Viewer)
 
 - **[P2]** Classic lists in productive programs are obsolete — use ALV (SAP List Viewer) instead (ABAPDocu: "Classic lists should no longer be used in live application programs. Use SAP List Viewer (ALV) instead of classic lists.").
-- **[P3]** If a classic list stays for legacy, avoid the obsolete constructs in it: obsolete formatting, obsolete calculations, obsolete list events and obsolete spooling (ABAPDocu "Obsolete Statements in List Processing").
+- **[P3]** If a classic list stays for legacy, avoid the obsolete constructs in it: obsolete formatting, obsolete calculations, obsolete list events and obsolete spooling (ABAPDocu: obsolete statements in list processing).
 - **[info]** ALV stack: for read-only simple lists — the SALV model (`cl_salv_table` factory, no manual field catalog); for interactive/full-grid features — `cl_gui_alv_grid` in a container. Container choice: `cl_gui_custom_container` (dominant — a custom screen area), `cl_gui_docking_container` (docking panel, no custom screen), `cl_gui_splitter_container` (several ALVs side by side). SAP GUI technology, prepares a dynpro screen.
 - **[P2]** Legacy FM-ALV — `REUSE_ALV_GRID_DISPLAY`/`REUSE_ALV_LIST_DISPLAY` + the `slis_*` stack (`slis_t_fieldcat_alv`, `slis_layout_alv`, `slis_selfield`, `slis_t_event`, `REUSE_ALV_FIELDCATALOG_MERGE`): still ALV, but an obsolete FM pattern. Do not create new FM-ALV — use SALV/grid; it is not the same as a classic `WRITE` list.
 - **[P3]** SALV events — `get_event( )` → `cl_salv_events_table`, handlers `on_user_command`/`on_double_click` (SALV's own event model, distinct from the grid's `SET HANDLER`).
