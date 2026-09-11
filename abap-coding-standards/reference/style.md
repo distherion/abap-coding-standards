@@ -8,7 +8,7 @@
 - **[P3]** **Strings/operators**: templates `|...|` and `&&` instead of `CONCATENATE`/`STRING`; `MOVE` → `=`, `TRANSLATE` → `to_upper`/`to_lower`, `CONDENSE` → `condense( )`; `#EC` → pragmas `##` where the check has one (`##NO_TEXT`, `##INCLUDED`, …); keep the legacy `#EC CI_*` pseudo-comment for cross-statement checks that still have no `##` equivalent in 7.50. A `##`-pragma goes to the end of the affected statement (before the period/comma) — when the code changes, reposition it rather than deleting or leaving it orphaned.
 - **[P3]** String literals — backtick `` `...` `` (type `string`) instead of `'...'` (type `c`, fixed): no redundant CHAR↔STRING conversion and no doubt about the exact type (note `strlen( 'abc   ' ) ≠ strlen( \`abc   \` )`, see `data.md`).
 - **[P3]** There is no `ENUM` in ABAP 7.50. Instead of an enum — constants in an `INTERFACE` (`zif_xxx=>c_value`), used directly, without `INTERFACES zif_xxx` in the class; do not use an enumeration class (a class with `CONSTANTS`) when an interface suffices.
-- **[P3]** Regular expressions — only when simple checks are not enough. Prefer `find`, `CS`/`NS`, `CO`/`CN`, `CA`/`NA`; when a regex is needed — `regex` (POSIX; the `pcre` dialect appeared only in **7.55**, NOT in 7.50); build a complex regex from named constants, not a raw literal. Do not compile a regex per call/in a loop — precompile once (`cl_abap_regex`) and reuse; for validation-style match/no-match the dominant idiom is `cl_abap_matcher=>matches( pattern = ... text = ... )` — use it over the raw `regex` built-in; avoid catastrophic backtracking (nested quantifiers like `(a+)+` — a ReDoS on long input); anchor with `^`/`$` when a full match is intended.
+- **[P3]** Regular expressions — only when simple checks are not enough. Prefer `find`, `CS`/`NS`, `CO`/`CN`, `CA`/`NA`; when a regex is needed — `regex` (POSIX; `pcre` — see "Version" below); build a complex regex from named constants, not a raw literal. Do not compile a regex per call/in a loop — precompile once (`cl_abap_regex`) and reuse; for validation-style match/no-match the dominant idiom is `cl_abap_matcher=>matches( pattern = ... text = ... )` — use it over the raw `regex` built-in; avoid catastrophic backtracking (nested quantifiers like `(a+)+` — a ReDoS on long input); anchor with `^`/`$` when a full match is intended.
 - **[P3]** Constants instead of magic numbers; group constants in `BEGIN OF … END OF` blocks. Name a constant by its **meaning**, not by the literal it holds: `lc_storage_class` for `'C123'`, not `lc_c123` — renaming a value into a same-named literal adds no information (Clean ABAP: "constants also need descriptive names").
 - **[P3]** Comments via `"`, not `*`. Comment the "why", not the "what". No commented-out code and no auto-signatures.
 - **[P2]** **Comments only in English.** Russian in comments is forbidden (Cyrillic is allowed only in string literals, e.g. `|Мужской|`).
@@ -55,10 +55,15 @@
 
 The skill targets ABAP 7.50. These features look like 7.40/7.50 but are unavailable — do not propose them in 7.50 code:
 - `SELECT ... FROM @itab AS alias` (internal table as an ABAP SQL source) — from 7.52; pragma `##itab_db_select` — from 7.53.
+- `RAISE EXCEPTION NEW class( ... )` — from 7.52 (in 7.50, create a variable first).
 - Type `utclong`, functions `utclong_current`/`utclong_add`/`utclong_diff`, `CONVERT UTCLONG`, `cl_abap_utclong` — from 7.54.
-- DDIC types `DATN`/`TIMN`/`UTCLONG` — from 7.54 (in 7.50 — `dats`/`tims`/`timestamp`/`timestampl`).
+- DDIC types `DATN`/`TIMN`/`UTCLONG` — from 7.54; in 7.50 — `dats`/`tims`/`timestamp`/`timestampl`.
 - Computed assignments `+=`, `-=`, `*=`, `/=`, `&&=` — from 7.54.
-- XCO (`xco_cp=>...`) — not available in NetWeaver 7.50 (it ships with ABAP Cloud and on-premise ABAP Platform 2021+/S/4HANA 2021+); in a 7.50 target do not propose it.
+- `cl_abap_context_info` (`get_user_time_zone( )` etc.) — added later (ABAP Cloud), not in 7.50; in 7.50 use the `sy-*` system fields (`sy-zonlo`/`sy-datlo`/`sy-timlo`).
+- `cl_abap_parallel=>run_inst( )` and `IF_ABAP_PARALLEL` — from 7.54; in 7.50 the serialized `run( )` is the API (see `parallel.md`).
+- SQL built-ins `tstmp_add_seconds( )`/`tstmp_seconds_between( )`/`tstmp_is_valid( )` — not part of the 7.50 built-in functions (added later, HANA context); in 7.50 stay on `cl_abap_tstmp`/`CONVERT TIME STAMP` (see `data.md`).
+- Regular-expression dialect `pcre` (in `regex`/`replace`/`find` conditions) — from 7.55; in 7.50 only POSIX `regex`.
+- XCO (`xco_cp=>...`) and RAP (service definitions/bindings) — not in NetWeaver 7.50 (they ship with ABAP Cloud and on-premise ABAP Platform 2021+/S/4HANA 2021+, see `odata.md`); in a 7.50 target do not propose them.
 
 # Formatting
 

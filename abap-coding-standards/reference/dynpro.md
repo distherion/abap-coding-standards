@@ -2,7 +2,7 @@
 
 > Classic Dynpro screens and their ABAP side. "No business logic in modules" and selection screens — `style.md` "Screens and events".
 
-- **[P2]** No business logic in a dialog module (`PBO`/`PAI`): the module reads the screen field / ok-code and delegates to a class method (`style.md`). A `MODULE ... OUTPUT` sets the screen state; a `MODULE ... INPUT` takes the input and calls the check/write method — neither computes or writes directly.
+- **[P2]** No business logic in a dialog module (`PBO`/`PAI`) — see `style.md` "Screens and events". The division of roles: a `MODULE ... OUTPUT` sets the screen state; a `MODULE ... INPUT` reads the screen field / ok-code and calls the class method — neither computes or writes directly.
 - **[P2]** Always allow the user to leave: the first `MODULE ... AT EXIT-COMMAND` handles the cancel/back function code, before the field checks. A module that raises `MESSAGE ... TYPE 'E'` outside `FIELD`/`CHAIN` leaves no input-ready field — without an `AT EXIT-COMMAND` path the user is stuck.
 - **[info]** Single-field check — `FIELD f MODULE mod` (+ `ON REQUEST`: run only when the field was changed). On `E`/`W`, only that field becomes ready for input again, PAI resumes after the `FIELD` statement, earlier modules are not re-run.
 - **[P2]** Related fields — check together in `CHAIN … ENDCHAIN`, not as separate `FIELD`s: `CHAIN. FIELD f1. FIELD f2. MODULE check. ENDCHAIN.` On an error, **all** chained fields stay ready for input (separate `FIELD`s gray out the rest after an error). Conditional run — `MODULE m ON CHAIN-INPUT` (any field of the chain has input) / `ON CHAIN-REQUEST` (any changed).

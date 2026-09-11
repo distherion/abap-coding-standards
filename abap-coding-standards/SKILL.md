@@ -28,18 +28,17 @@ Assign each finding to one level and report in order P0 → P3.
 - **P1 — Critical**: wrong result (races, lost/corrupted money, wrong write, unhandled error). Must fix.
 - **P2 — Substantial**: slow (`SELECT` in loop, O(n²)), fragile, hard to test. Worth fixing — can be a separate task.
 - **P3 — Minor**: style (naming, case, formatting, readability); others' code — per "Review vs own code". Mention in passing or skip.
-- **Downgraded priority — P3 (mention in passing, do not raise to P1/P0 without explicit context):** writes without `ENQUEUE/DEQUEUE` — only when concurrent access is provably impossible in the scenario (single-user dialog/report); the absence of an **observed** race is not proof of safety — with any real concurrency a lock-free write stays P1/P2. `COMMIT` in chunks — only in deliberate mass loading where each chunk is self-consistent and an interruption between chunks loses no money/data.
-- **Exception to downgrade — broken LUW (P1):** one logical money/data operation split into independent `COMMIT`s so that an interruption/failure leaves a half-saved state — a payment "deleted" while REGUH rows stay active; headers committed without line items; `CATCH` swallows the error while `COMMIT` still runs. This is not "COMMIT in a loop", it is a broken LUW — P1, must fix. (COMMIT/LUW rules — in `errors.md`.)
+- **Downgraded priority — P3 (mention in passing, do not raise to P1/P0 without explicit context):** writes without `ENQUEUE/DEQUEUE` — only when concurrent access is provably impossible in the scenario (single-user dialog/report); the absence of an **observed** race is not proof of safety — with any real concurrency a lock-free write stays P1/P2. `COMMIT` in chunks — only in deliberate mass loading. (LUW/COMMIT rules — `errors.md`.)
+- **Exception to downgrade — broken LUW (P1):** one logical money/data operation split into independent `COMMIT`s (a half-saved state on an interruption) is a defect, not "COMMIT in a loop" — P1, must fix.
 
 **Markers** at the start of a rule: `[P#]` — severity on review; `[info]` — background knowledge (syntax, platform, name limits), not a finding — do not report, but its claims still need the same verification as any other reference ("Finding sources"); `[behavior]` — an instruction to the agent (how to search, when to ask, what to edit), not a code finding. Own code — follow all rules regardless of the marker.
 
-**Citing a rule in a review report:** P0/P1 rules carry a stable slug in a trailing HTML comment (`<!-- rule: check-subrc-immediately -->`, invisible in render). The slug is a **machine-searchable identifier**, not a fragment anchor — an HTML comment creates no link target, so cite rules **point-in-time as `file.md:line`** (e.g. `errors.md:19`) and mention the `rule:`-slug in parentheses when referencing it by name. Slugs are unique per file and survive reordering; P2/P3/info have no slug — cite them as `file.md:line`.
+**Citing a rule in a review report:** cite rules by their `rule:`-slug and as `file.md:line` — the mechanics are in `reference/reviewing.md`.
 
 ## Review flow
-1. Verify every reference against its definition in the repo — see "Context — don't invent".
-2. Look for logic errors/races/edge cases beyond the checklist (see "Logic above rules").
-3. Run the checklist by topic (open the relevant `reference/*.md`), assign each finding a level P0–P3.
-4. Report in order P0 → P3; P3 — in passing or skip.
+1. Verify references and logic — per "Context — don't invent" and "Logic above rules".
+2. Run the checklist by topic (open the relevant `reference/*.md`), assign each finding a level P0–P3.
+3. Report in order P0 → P3; P3 — in passing or skip.
 
 ## Logic above rules
 Always look for logic errors and potential problems — even those not in the rules. The rules are a minimal checklist, not an exhaustive list. Beyond them check: races and wrong call order, lost/stuck states, edge cases (empty inputs, short strings, invalid dates, missing records), silent failures, double/extra side effects, mismatch between caller and callee, unset flags/statuses. Assign any finding a level P0–P3 and give a concrete fix.
@@ -89,3 +88,4 @@ Open only the file relevant to the task topic:
 | `reference/ddic.md` | ABAP Dictionary objects: table keys, buffering, append structures, domains/data elements |
 | `reference/alv.md` | Output with ALV (SAP List Viewer), classic lists |
 | `reference/dynpro.md` | Classic Dynpro screens: PBO/PAI, CHAIN/FIELD, ok_code, LOOP AT SCREEN |
+| `reference/reviewing.md` | Reviewing: citing rules (slugs, `file.md:line`), report order |

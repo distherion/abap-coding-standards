@@ -28,7 +28,7 @@
         WHERE pernr = @lt_pernr_range-low AND endda = @lv_endda.
   ENDTRY.
   ```
-- **[P2]** Where the target rows come from a joinable relationship, prefer `JOIN` over `FOR ALL ENTRIES`/RANGE-`IN`: the join matches and filters on the DB without transferring a key list from the application to the DB (FAE/RANGE — when a direct join is not expressible; see the rules above for the size limit and the emptiness check).
+- **[P2]** Where the target rows come from a joinable relationship, prefer `JOIN` over `FOR ALL ENTRIES`/RANGE-`IN`: the join matches and filters on the DB without transferring a key list from the application to the DB. FAE/RANGE — only when a direct join is not expressible (limits, emptiness check and the fallback mechanics — in the RANGE rule above).
 - **[info]** Check that the `WHERE` condition is covered by an index (SE11/`ST05`); for a quick data probe — `UP TO n ROWS`.
 - **[P2]** No `SELECT` in a row-processing loop — not `SELECT SINGLE`, not `SELECT ... ENDSELECT`: collect keys and select once (`SELECT`/`JOIN`/subquery) into `INTO TABLE`/`INTO CORRESPONDING FIELDS OF TABLE`; for large volumes — `PACKAGE SIZE`/cursor. (Note: the DB interface transfers rows in packets, not row-by-row — the real problem is the per-row processing loop and cursor handling, not a "row-by-row fetch".)
 - **[P2]** Do aggregation and `GROUP BY`/`HAVING`/`[NOT] EXISTS` in SQL, do not fetch all rows and count in ABAP (`LOOP AT END OF`).
