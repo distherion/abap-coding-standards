@@ -7,7 +7,7 @@
 - **[P1]** `FOR ALL ENTRIES` — only after an emptiness check. <!-- rule: for-all-entries-check-empty -->
 - **[info]** On HANA `FOR ALL ENTRIES` is transformed by the DBSL hint `RSDU_CREATE_HINT_FAE` **into a join-based access path** instead of the classic key transfer (SAP Note 1662726 "Optimization of select with FOR ALL ENTRIES on SAP HANA database" — the term "FDA" is not official SAP terminology; related parameter note 1987132 — verify in the note). FAE stays relevant on HANA; a very large RANGE `IN` can be slower than FAE — measure with ST05, do not decide by rule of thumb.
 - **[info]** An internal table as an ABAP SQL source (`SELECT ... FROM @itab AS alias`) — from 7.52, NOT 7.50 (see style.md "Version: what is NOT in 7.50"). Only when SQL functionality (JOIN/aggregates/subqueries) is needed beyond `LOOP`/`READ` — otherwise ABAP statements are faster. Moving data to the DB silences the pragma `##itab_db_select`; more than one table per statement — only via the in-memory engine without moving.
-- **[P2]** For selection by a list of keys prefer **RANGE + `IN`** over `FOR ALL ENTRIES` — the query stays declarative and the range list is reusable in several checks. A RANGE has a statement-size limit: when the `WHERE` condition with `IN` exceeds it, Open SQL raises `CX_SY_OPEN_SQL_DB` (unhandled — dump `SAPSQL_STMNT_TOO_LARGE`/`DBSQL_STMNT_TOO_LARGE`). Catch it **and check `cx->textid = cx_sy_open_sql_db=>statement_too_large`** before falling back to FAE — a fallback for any other DB error would hide the real fault. **An empty RANGE makes `IN` true — it selects ALL rows** — check the emptiness BEFORE the query, not in the `CATCH` block. Equivalence with FAE — only for `EQ` rows; split `BT`/`EXCL` intervals into chunks first:
+- **[P2]** For selection by a list of keys prefer **RANGE + `IN`** over `FOR ALL ENTRIES` — the query stays declarative and the range list is reusable in several checks. A RANGE has a statement-size limit: when the `WHERE` condition with `IN` exceeds it, Open SQL raises `CX_SY_OPEN_SQL_DB` (unhandled — dump `SAPSQL_STMNT_TOO_LARGE`/`DBSQL_STMNT_TOO_LARGE`). Catch it **and check `cx->textid = cx_sy_open_sql_db=>statement_too_large`** before falling back to FAE — a fallback for any other DB error would hide the real fault. **An empty RANGE makes `IN` true — it selects ALL rows** — check the emptiness BEFORE the query, not in the `CATCH` block. Equivalence with FAE — only for `EQ` rows **and the same projection**: FAE treats its source table as a set — duplicate lines over the selected/`WHERE`-referenced columns are collapsed, lines with all-initial referenced columns are dropped — so the fallback equals the `IN` query only when that query is de-duplicated over the same columns too (`DISTINCT` below); select the full unique key in both branches if the duplicates are real records. Split `BT`/`EXCL` intervals into chunks first:
   ```abap
   TYPES ty_pernr_range TYPE RANGE OF pernr.
   IF lt_pernrs IS INITIAL.
@@ -16,15 +16,15 @@
   DATA(lt_pernr_range) = VALUE ty_pernr_range(
     FOR ls IN lt_pernrs ( sign = 'I' option = 'EQ' low = ls-pernr ) ).
   TRY.
-      SELECT pernr, endda FROM pa0001 INTO TABLE @lt_pa0001
+      SELECT DISTINCT pernr, endda FROM pa0001 INTO TABLE @lt_pa0001
         WHERE pernr IN @lt_pernr_range AND endda = @lv_endda.
     CATCH cx_sy_open_sql_db INTO DATA(lx_sql).
       " fall back to FAE only when the cause really is the statement-size limit
       IF lx_sql->textid <> cx_sy_open_sql_db=>statement_too_large.
         RAISE EXCEPTION lx_sql.
       ENDIF.
-      SELECT pernr, endda FROM pa0001 INTO TABLE @lt_pa0001
-        FOR ALL ENTRIES IN lt_pernr_range
+      SELECT DISTINCT pernr, endda FROM pa0001 INTO TABLE @lt_pa0001
+        FOR ALL ENTRIES IN @lt_pernr_range
         WHERE pernr = @lt_pernr_range-low AND endda = @lv_endda.
   ENDTRY.
   ```

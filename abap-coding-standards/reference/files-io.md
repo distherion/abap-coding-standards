@@ -14,7 +14,7 @@
 # Email (CL_BCS_MESSAGE)
 
 - **[P2]** Prefer sending via `cl_bcs_message` (high-level BCS API, since NW 7.40): `NEW cl_bcs_message( )` → `set_subject( )`/`set_main_doc( )`/`add_attachment( )`/`add_recipient( )`/`set_sender( )` → `send( )`. Shorter and cleaner than the low-level chain `cl_bcs` + `cl_document_bcs` + `cl_send_request_bcs` + `cl_cam_address_bcs`. The body is set with `set_main_doc( iv_contents_txt = ... iv_doctype = ... )` (there is no `add_text`); instantiate with `NEW` (no `create_instance`); `send( )` raises `cx_bcs_send`. Verify signatures in SE24, not from memory.
-- **[P2]** BCS sends an email only at `COMMIT WORK` — after `send( )` commit (or `set_send_immediately( 'X' )` on the low-level API), otherwise the email hangs in SOST. Catch `cx_bcs_send`.
+- **[P2]** A persistent BCS send request is persisted (Object Services) and dispatched **at `COMMIT WORK`** — no COMMIT, no send, the request stays unprocessed in SOST. `set_send_immediately( 'X' )` (low-level API) only switches the **send mode** — it does not replace the COMMIT that persists the request. The `COMMIT` belongs to the owner of the business LUW at a consistent point, not to an arbitrary mail helper; catch `cx_bcs_send` and check the send result.
 - **[info]** A binary attachment (low-level API): `cl_document_bcs=>xstring_to_solix( ip_xstring = ... )` (the dominant helper is `cl_bcs_convert=>xstring_to_solix( iv_xstring = ... )`) + in `add_attachment( )` pass both `i_att_content_hex` and `i_attachment_size` (the size is a parameter of `cl_document_bcs=>add_attachment` — without it a binary attachment breaks/is empty).
 
 # Excel (.xlsx)

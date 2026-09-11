@@ -14,11 +14,13 @@
       METHODS do REDEFINITION.
   ENDCLASS.
 
-  METHOD zcl_x_task~do.
-    IMPORT task = lv_task FROM DATA BUFFER p_in.
-    " ... compute ...
-    EXPORT task = lv_task TO DATA BUFFER p_out.
-  ENDMETHOD.
+  CLASS zcl_x_task IMPLEMENTATION.
+    METHOD do.
+      IMPORT task = lv_task FROM DATA BUFFER p_in.
+      " ... compute ...
+      EXPORT task = lv_task TO DATA BUFFER p_out.
+    ENDMETHOD.
+  ENDCLASS.
 
   " launch: serialize each input item to xstring, one row per task
   DATA(lt_in) = VALUE cl_abap_parallel=>t_in_tab( FOR <ls> IN lt_items ( lcl=>serialize( <ls> ) ) ).
@@ -41,6 +43,6 @@
 - **[info]** Registering a call: `CALL FUNCTION 'Z_FM' IN BACKGROUND UNIT lo_unit EXPORTING ...` — the payload FM is put into the unit object, not executed immediately (no `DESTINATION` clause — the unit carries it). The payload FM must be remote-enabled (RFC) in SE37.
 - **[info]** Common `IF_BGRFC_UNIT` members (both t/q, in/outbound): attribute `unit_id`; methods `get_function_count( )`/`get_function_call_list( )`, `set_function_call_order( permutation )` (reorder calls inside the unit; raises `CX_BGRFC_ILLEGAL_PERMUTATION`, `CX_BGRFC_INVALID_UNIT`), `delay( seconds )` (execute after N seconds; raises `CX_BGRFC_INVALID_UNIT`, `CX_BGRFC_INVALID_TIME_SPEC`), `lock( )` → `LOCK_ID` (raises `CX_BGRFC_INVALID_UNIT`), `separate_from_update_task( )` (own LUW, not the update task; raises `CX_BGRFC_INVALID_UNIT`), `is_valid( )`, `disable_commit_checks( )`, `free( )`. (There is no `priority` attribute on `IF_BGRFC_UNIT`.) `create_unit_by_pattern( )` is declared on the specific unit interfaces (`IF_TRFC_UNIT_OUTBOUND`, `IF_QRFC_UNIT_*`) — clone the payload into another unit (mass parallel without re-serializing); verify the exact interface in SE24.
 - **[P1]** The unit executes exactly once after `COMMIT WORK` of the creating LUW. No `COMMIT` — the unit does not start (transactional). An abort/ROLLBACK of the creating LUW cancels the unit. <!-- rule: unit-runs-after-commit -->
-- **[P2]** `lo_unit->if_bgrfc_unit~disable_commit_checks( )` — suppress the "unit registered but not committed" check at end of LUW, when the caller decides/defers the commit itself (e.g. a conditional `COMMIT`). Without it, ending the LUW with an uncommitted unit is an error.
+- **[P2]** `lo_unit->if_bgrfc_unit~disable_commit_checks( )` — disables the **transactional consistency check** of a bgRFC unit, i.e. the check that would abort on commit-capable statements *inside* the unit (sRFC/aRFC, `WAIT`, `COMMIT WORK`/`ROLLBACK WORK`, HTTP, `DB_COMMIT`). Call it **only** after analyzing the SAP LUW of the generated unit and the repeated-execution case: SAP does not guarantee the transactional integrity of a unit whose checks were disabled — a unit that partially committed and then terminates can, on re-execution, write data more than once. It is **not** a "unit registered but not committed" control and not a substitute for an explicit `COMMIT` of the creating LUW.
 - **[P2]** Catch the concrete exception each call raises (map above), wrap in your own `zcx_*` (see "Error handling"): `cx_bgrfc_invalid_destination`, `cx_bgrfc_invalid_context`, `cx_bgrfc_invalid_unit`, `cx_bgrfc_invalid_time_spec`, `cx_bgrfc_illegal_permutation`; queue — `cx_qrfc_invalid_queue_name`, `cx_qrfc_duplicate_queue_name`.
 - **[info]** Error monitoring: `cl_bgrfc_monitor_api` (package `sbgrfcmon`) — `create_bgrfc_monitor_inbound/outbound( )` → `IF_BGRFC_MONITOR_INBOUND`/`IF_BGRFC_MONITOR_OUTBOUND`; `create_trfc_monitor_inbound/outbound( )` → `IF_TRFC_INBOUND_MONITOR`/`IF_TRFC_OUTBOUND_MONITOR`; `create_qrfc_monitor_inbound/outbound( )` → `IF_QRFC_INBOUND_MONITOR`/`IF_QRFC_OUTBOUND_MONITOR`; `create_utility( )` → `IF_BGRFC_MONITOR_API_UTILITY` (message helpers). Note the asymmetric interface names — `IF_TRFC_INBOUND_MONITOR`, **not** `IF_TRFC_MONITOR_INBOUND`. Read stuck/failed units here, not in the caller's `sy-subrc`.

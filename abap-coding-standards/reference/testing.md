@@ -14,10 +14,10 @@
 
 ## Test classes
 
-- **[P3]** A local test class in the test-include of the class under test (found on refactor, run in one click). Component-/integration tests — in a separate global class `FOR TESTING ... ABSTRACT` (not a `$TMP` report), so it does not leak into production.
+- **[P3]** A local test class in the test-include of the class under test (found on refactor, run in one click). Component-/integration tests — in concrete local test classes (not a `$TMP` report); global `FOR TESTING` classes are for reusable helpers or an abstract base (fixtures/asserts) shared via inheritance by executable test classes — a global **`ABSTRACT`** test class itself is not instantiated by the ABAP Unit framework, so its own test methods would never run.
 - **[P3]** Name the test class by purpose/setup, not "test": `ltc_<public-method>` or `ltc_<common setup>`. Anti-patterns: `ltc_test`, repeating the name of the class under test.
 - **[P3]** Common helper methods (custom asserts, data factories) — in a helper class (`lth_*`), accessed via inheritance or delegation, do not duplicate in each test.
-- **[info]** Mandatory additions: `FOR TESTING`, `RISK LEVEL HARMLESS` (or `DANGEROUS` — only if the test actually writes to the DB/external systems, in a unit — almost never), `DURATION SHORT`/`MEDIUM`/`LONG`. Class `ABSTRACT` — so it cannot be instantiated in production.
+- **[info]** Mandatory additions: `FOR TESTING`, `RISK LEVEL HARMLESS` (or `DANGEROUS` — only if the test actually writes to the DB/external systems, in a unit — almost never), `DURATION SHORT`/`MEDIUM`/`LONG`. Do **not** declare an executable test class `ABSTRACT` — the ABAP Unit framework must instantiate it to run its test methods; `ABSTRACT` is only for a common base fixture with concrete subclasses.
 - **[info]** Run in ADT: `Ctrl+Shift+F10` — all tests of the class, `Ctrl+Shift+F11` — with coverage, `Ctrl+Shift+F9` — preview, `Ctrl+Shift+F12` — with test relations (macOS — `Cmd`).
 
 ## Code under test
