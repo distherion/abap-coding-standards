@@ -3,9 +3,9 @@
 > General Clean ABAP principles (not 7.50-specific) — apply as style, not as a hard ABAP constraint.
 
 - **[P3]** Objects instead of static classes (static — only stateless utilities).
-- **[P3]** Composition over inheritance; `FINAL` and `PRIVATE` by default.
+- **[P3]** Composition over inheritance; `FINAL` and `PRIVATE` by default. `FINAL` does not block test doubles: the double replaces the **interface**, not the class (see the next bullet) — keep a dependency `FINAL` and substitute on its `zif_*`.
 - **[P3]** Immutable over mutable+getter/setter; `NEW #( )` instead of `CREATE OBJECT`.
-- **[P3]** Factories/patterns — only when actually needed, not for the future: a static factory instead of optional constructor parameters (global `CREATE PRIVATE`, constructor `PUBLIC`); do not introduce abstraction upfront.
+- **[P3]** Factories/patterns — only when actually needed, not for the future: a static factory instead of optional constructor parameters (global `CREATE PRIVATE`, constructor `PUBLIC`); do not introduce an interface for a *hypothetical* future. Exception — **testability is a current need**: a class that a unit-tested class depends on and that must be replaced by a double gets a `zif_*` interface immediately (injected via the constructor) — `cl_abap_testdouble` doubles an interface, and a `FINAL`/`PRIVATE` class cannot be substituted otherwise. The class under test itself needs no interface: it is tested directly through its public API.
 - **[P3]** A static method via `zcl_x=>method( )`, not `lo_obj->method( )`; singleton — only when multiple instances make no sense.
 - **[P3]** Constants/types — via `zif_x=>c_*`/`cl_x=>ty_*`, not `me->`.
 - **[P2]** Do not mix stateful and stateless in one class.

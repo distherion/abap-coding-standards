@@ -36,7 +36,7 @@
 - **[P3]** Positive conditions (`IS NOT` instead of `NOT IS`); `CASE` instead of `ELSE IF`.
 - **[P3]** Complex conditions (`IF a AND b AND c`) — extract into a predicate method `is_...` with a telling name.
 - **[P3]** Predicative call of a boolean method: `IF is_valid( ).` / `IF NOT can_archive( ).` — the condition reads like a phrase; a method called in a condition must be free of side effects (called for its result, not its effect).
-- **[info]** ABAP does **not** short-circuit `AND`/`OR`: both sides are always evaluated. Do not rely on `a AND b` to protect `b` from evaluation (`lt_itab[ i ] IS NOT INITIAL AND lt_itab[ i ]-f = x` still evaluates the second side and raises) — guard with a nested `IF`.
+- **[info]** ABAP evaluates `AND`/`OR` from left to right with **short-circuit**: once the result is determined by the left side, the right side is not evaluated (ABAPDocu "Logical expressions"). The documentation recommends placing the cheap/usually-false comparison first in an `AND` chain.
 - **[info]** `WHEN OTHERS` in `CASE` — only last (otherwise it shadows the following `WHEN`, a syntax error).
 
 # Built-in functions
