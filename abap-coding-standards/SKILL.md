@@ -33,7 +33,7 @@ Assign each finding to one level and report in order P0 → P3.
 
 **Markers** at the start of a rule: `[P#]` — severity on review; `[info]` — background knowledge (syntax, platform, name limits), not a finding — do not report, but its claims still need the same verification as any other reference ("Finding sources"); `[behavior]` — an instruction to the agent (how to search, when to ask, what to edit), not a code finding. Own code — follow all rules regardless of the marker.
 
-**Citing a rule in a review report:** P0/P1 rules carry a stable slug in a trailing HTML comment (`<!-- rule: check-subrc-immediately -->`, invisible in render). Cite as `file.md#slug` — e.g. `errors.md#check-subrc-immediately`. Slugs are unique per file and survive reordering; P2/P3/info have no slug — cite them point-in-time as `file.md:line`.
+**Citing a rule in a review report:** P0/P1 rules carry a stable slug in a trailing HTML comment (`<!-- rule: check-subrc-immediately -->`, invisible in render). The slug is a **machine-searchable identifier**, not a fragment anchor — an HTML comment creates no link target, so cite rules **point-in-time as `file.md:line`** (e.g. `errors.md:19`) and mention the `rule:`-slug in parentheses when referencing it by name. Slugs are unique per file and survive reordering; P2/P3/info have no slug — cite them as `file.md:line`.
 
 ## Review flow
 1. Verify every reference against its definition in the repo — see "Context — don't invent".
