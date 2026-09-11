@@ -1,0 +1,4 @@
+# Reviewing — citing rules in a report
+
+- **[behavior]** P0/P1 rules carry a stable slug in a trailing HTML comment (e.g. `<!-- rule: rule-slug -->` — invisible in render). The slug is a **machine-searchable identifier**, not a fragment anchor — an HTML comment creates no link target, so cite rules **point-in-time as `file.md:line`** (e.g. `errors.md:19`) and mention the `rule:`-slug in parentheses when referencing it by name. Slugs are unique per file and survive reordering; P2/P3/info have no slug — cite them as `file.md:line`.
+- **[behavior]** Report findings in order P0 → P3; P3 — in passing or skip. P0/P1 findings without an explicit context are never silently downgraded to P3 (see SKILL.md "Priorities" for the legitimate downgrade cases).

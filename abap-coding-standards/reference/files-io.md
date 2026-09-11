@@ -5,7 +5,7 @@
 - **[P2]** Encodings: reading/writing UTF-8 — explicitly `ENCODING UTF-8`. cp1251↔UTF-8 — `cl_abap_conv_in_ce`/`cl_abap_conv_out_ce` (`CONVERT TEXT ... INTO SORTABLE CODE` does a **sorting-key** conversion, not a codepage/encoding one — do not use it for re-encoding); `xstring`↔`string` — `cl_abap_codepage=>convert_from/convert_to`.
 - **[P2]** Do not parse CSV/JSON/XML by hand in a character loop: CSV — `cl_rsda_csv_converter`/a proven splitter; JSON — `/ui2/cl_json`/`cl_trex_json_serializer`; XML/JSON — `CALL TRANSFORMATION id`.
 - **[P3]** `CALL TRANSFORMATION id SOURCE data RESULT XML xstr` — serialization/deserialization instead of manual concatenation.
-- **[P1]** A size/path from external input — validate it (a whitelist of file names, a size limit), otherwise path traversal/DoS (see `security.md`). <!-- rule: file-path-validate-input -->
+- **[P1]** A file name/path and size from external input — validate; path traversal / DoS — see `security.md` (rule `open-dataset-path-traversal`).
 
 # sXML (JSON/XML streaming)
 

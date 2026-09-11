@@ -1,6 +1,6 @@
 # OData (SEGW / Gateway)
 
-> **[info]** The main part of this section — OData **v2** (the default in Gateway 7.40/7.50). OData **v4** also exists in 7.50 (SAP Gateway, SEGW with service type V4) — see `reference/odata-v4.md`. `@OData.publish: true` on a CDS view is SADL **auto-exposure** (typically v2) — not a RAP marker; RAP (`service definition`/`service binding`, XCO) — ABAP Cloud / S/4HANA, not classic 7.50.
+> **[info]** The main part of this section — OData **v2** (the default in Gateway 7.40/7.50). OData **v4** also exists in 7.50 (SAP Gateway, SEGW with service type V4) — see `reference/odata-v4.md`. `@OData.publish: true` on a CDS view is SADL **auto-exposure** (typically v2) — not a RAP marker; RAP (`service definition`/`service binding`, XCO) — ABAP Cloud / S/4HANA, not classic 7.50 (see `style.md`, "Version" — XCO/RAP).
 
 - **[P2]** Implement logic only in `*_DPC_EXT`/`*_MPC_EXT`. The base `*_DPC`/`*_MPC` are regenerated on every service regeneration in SEGW — code there is silently lost.
 - **[P2]** CRUD methods in `DPC_EXT`: `GET_ENTITYSET` (collection), `GET_ENTITY` (by key), `CREATE_ENTITY` (`io_data_provider->read_entry_data( IMPORTING es_data = ... )` → return `er_entity`), `UPDATE_ENTITY`, `DELETE_ENTITY`.
