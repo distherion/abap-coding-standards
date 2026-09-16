@@ -1,89 +1,40 @@
-# Data types and DDIC
+# Data types, variables and references
 
-- **[P1]** Money and exact amounts — only `p` (or DDIC `CURR`/`QUAN`), never `f` (binary float): `0.815` in `f` is stored as `8.1499…E-01` and rounds to `0.81`. Never compare floats for equality. <!-- rule: money-p-not-float -->
-- **[P3]** Conversions — explicit: `CONV #( )`/`CONV type( )` or string templates `|{ lv_num }|`; do not rely on implicit ones — `i` from `p` rounds commercially (e.g. `1.6 → 2`), and overflow raises `CX_SY_CONVERSION_OVERFLOW`; `CURR`/`QUAN` may lose length/decimals silently on type change. Explicit conversion gives a catchable exception on overflow or precision loss; implicit does not always.
-- **[P2]** A `CURR`/`QUAN` field must have a reference field — a `CUKY`/`UNIT` column in the same table/structure.
-- **[P3]** Do not write date arithmetic (months/years, end of month, seniority) by hand — use proven utilities. Primary (RE-FX): `cl_reca_date` — add/subtract: `add_to_date( id_date = ... id_months/id_years/id_days = ... )` (→ `rd_date`), `add_months_to_date( id_months = ... id_date = ... )`, `sub_months_from_date( ... )`; end of month — `set_to_end_of_month( id_date = ... )` / `set_to_begin_of_month( ... )`; diff — `get_days_between_two_dates( id_datefrom = ... id_dateto = ... )`, `months_between_two_dates( id_date_to = ... id_date_from = ... )`, `get_date_diff( id_date_from = ... id_date_to = ... IMPORTING ed_years/ed_months/ed_calendar_days )`. Without RE-FX — FM `RP_CALC_DATE_IN_INTERVAL` (`date`/`days`/`months`/`years`/`signum` → `calc_date`); end of month — `CONV d( lv_first_day_of_next_month - 1 )` or FM `RP_LAST_DAY_OF_MONTHS`; HR month arithmetic (seniority/periods) — `ADD_MONTH_TO_DATE`/`RE_ADD_MONTH_TO_DATE`.
-- **[P2]** Append structures (not for enhancing your own `Z`-tables) and domains/data elements (one semantic per DTEL, reuse standard DTELs) — see `ddic.md`.
-- **[P1]** Generating document/record numbers — via number range (`NUMBER_GET_NEXT`), not by hand (`MAX + 1` — a race under parallelism). Gaps in numbers are normal: do not require continuity, do not "fix" holes; the buffered number comes from the range. <!-- rule: number-range-not-max-plus-one -->
+> Types and their lifetime: declarations, inline `DATA`, references, structures and constructors.
+> Related: `numbers.md` (money and arithmetic), `datetime.md` (date/time), `strings.md` (text), `itab.md` (internal tables).
 
-# Texts and translation
-
-- **[P2]** Translatable text — a separate **text table** (`*T`) with a foreign key to the base table, not text columns in the main table. A text table supports SE63 translation, offers several lengths (short/medium/long) for one object and adds a value list / maintenance-view text column automatically. UI texts — a message class or `TEXT-` symbols, not literals (see `errors.md`).
-- **[P3]** One original language for all objects of a project (e.g. English) — easier maintenance and translation; the phrase lengths differ across languages, leave space for them in the UI.
-- **[P3]** Do not show system fields in the UI (`sy-uzeit`, `sy-datum`, `sy-host`, `sy-sysid`, `sy-dbsys`, …) — technical values; only business data reaches the user.
-- **[P2]** No `CONSTANTS` for user-facing text — text constants cannot be translated (SE63). The user receives only translatable sources: a message class or `TEXT-` symbols, OTR — never literals or constants in code (see `errors.md`).
-- **[P3]** Long texts (SAPscript/SO10) — via `READ_TEXT` (`id`/`language`/`name`/`object` → `TABLES lines`) and `SAVE_TEXT`/`INIT_TEXT`/`CREATE_TEXT`; do not read/store raw text tables by hand.
-
-# Numbers
-
-- **[P1]** Integer division `/` rounds commercially (round half up): `4 / 5 = 1`, `2 / 3 = 1`, `5 / 2 = 3`. The integer part without rounding comes from `DIV`: `4 DIV 5 = 0`, `7 DIV 3 = 2`. Do not confuse them — it gives a wrong result. A percent/ratio must multiply **before** dividing, or the fraction is lost first: `lv_pct = lv_sum * 100 / lv_salary.` is right, `lv_pct = lv_sum / lv_salary * 100.` is wrong for `sum < salary` (the integer `/` truncates to 0). <!-- rule: div-rounds-half-up -->
-- **[P1]** `DIV`/`MOD` — non-negative remainder: `-7 DIV 3 = -3`, `-7 MOD 3 = 2` (invariant `n = (n DIV d)*d + (n MOD d)`; the remainder is **always** non-negative and < |divisor| — `7 MOD -3 = 1`, `-7 MOD -3 = 2`). <!-- rule: div-mod-nonneg-remainder -->
-- **[P1]** Division by zero: `x / 0` (x≠0), `x DIV 0`, `x MOD 0` → `CX_SY_ZERODIVIDE`; a zero dividend (`0 / 0`, `0 DIV 0`, `0 MOD 0`) — no exception, result is 0. <!-- rule: division-by-zero -->
-- **[P1]** `**` returns `f` (binary float, precision loss) when no operand is a decimal floating point type; if an operand is `decfloat16/34` — calc type is `decfloat34`. For an integer power use `ipow( base = ... exp = ... )`. <!-- rule: power-returns-float -->
-- **[P1]** Integer overflow (`2147483647 + 1`) → `CX_SY_ARITHMETIC_OVERFLOW` (catchable). <!-- rule: integer-overflow -->
-- **[P1]** Inline `DATA(x) = lv_packed + 1` with a `p` operand gives `p LENGTH 8 DECIMALS 0` — the fraction is lost. For fractions declare the type explicitly: `DATA(x) TYPE p LENGTH 8 DECIMALS 2`. <!-- rule: inline-packed-loses-fraction -->
-- **[P1]** `EXACT` on digit loss: `CX_SY_CONVERSION_ROUNDING` (fraction/digits lost), `CX_SY_CONVERSION_OVERFLOW` (overflow) — catch it or guarantee the range. <!-- rule: exact-digit-loss -->
-- **[info]** Rounding: `round( val = ... dec = ... [mode = ...] )`, `ceil`/`floor`/`trunc`/`frac`; `nmin`/`nmax` — min/max of arguments; `cl_abap_math` — numeric limits (`min_*`/`max_*` per type, e.g. `cl_abap_math=>min_int4`, `=>max_decfloat34`); the mathematical constants `pi`/`e` are **not** in the 7.50 class — use `acos( -1 )`.
-- **[P3]** No `ADD`/`SUBTRACT`/`MULTIPLY`/`DIVIDE` — write an arithmetic assignment `lv_x = lv_x + lv_n`; computed assignments `+=`/`-=`/`*=`/`/=` — only from 7.54 (see `style.md`).
-- **[P3]** Amount in words (documents, receipts) — FM `SPELL_AMOUNT` (`amount`/`currency`/`language` → `in_words`); do not assemble the verbal form by hand.
-
-# Date and time
-
-- **[info]** Types `d`/`t` in arithmetic behave like `i`: `d` = days since 01.01.0001, `t` = seconds since midnight. A direct date difference gives days: `DATA(days) = lv_date2 - lv_date1.`
-- **[P1]** Time difference across midnight — take `MOD 86400`, otherwise a negative result: `DATA(diff) = ( lv_time2 - lv_time1 ) MOD 86400.` <!-- rule: time-diff-across-midnight -->
-- **[info]** Day of week (1 = Monday): do not compute via `lv_date MOD 7`. Compute via the difference from a known Monday (`20240101`): `DATA(wd) = ( lv_date - CONV d( '20240101' ) ) MOD 7 + 1.` (`MOD` returns a non-negative remainder — also works for dates before the reference.) Or FM `DAY_IN_WEEK` (`datum` → `wotnr`, 1 = Monday).
-- **[P1]** `CONVERT TIME STAMP ... TIME ZONE ... INTO DATE ... TIME ...` sets `sy-subrc`: `8` = invalid timezone, `12` = invalid timestamp — check immediately (see `errors.md`). <!-- rule: convert-timestamp-check-subrc -->
-- **[P1]** `EXACT d( lv_str )` validates the date — on an invalid one it raises `CX_SY_CONVERSION_NO_DATE`; `CONV d( )` does not validate. <!-- rule: exact-date-validates -->
-- **[info]** Timezone: server — `sy-datum`/`sy-uzeit`; user's local — `sy-datlo`/`sy-timlo`/`sy-zonlo`. The user timezone — from `sy-zonlo`; `cl_abap_context_info=>get_user_time_zone( )` — NOT in 7.50 (see `style.md`, "Version").
-- **[P3]** Timestamp arithmetic — prefer `cl_abap_tstmp`, not manual recomputation of `timestampl`/`CONVERT`: difference — `cl_abap_tstmp=>subtract( tstmp1 = ... tstmp2 = ... )` (→ seconds), add — `cl_abap_tstmp=>add( tstmp = ... secs = ... )`, shift — `cl_abap_tstmp=>subtractsecs( tstmp = ... secs = ... )`. Local↔UTC — `cl_abap_tstmp=>systemtstmp_syst2utc( )`/`systemtstmp_utc2syst( )` (same names exist as FMs; the class methods are the common form); DST — `systemtstmp_syst2loc`/`systemtstmp_loc2syst`, a DST detection — `cl_abap_tstmp=>is_double_interval( date, time )` / `is_double_interval_tzone( )` (RETURNING flag, not an IMPORTING parameter). A seconds-between helper — `cl_abap_timestamp_util=>get_instance( )->tstmp_seconds_between( iv_timestamp0 = ... iv_timestamp1 = ... )`. `GET TIME STAMP` returns UTC. `CONVERT TIME STAMP` only converts, does not add. In DB `SELECT` — built-ins `tstmp_add_seconds( )`/`tstmp_seconds_between( )`/`tstmp_is_valid( )` — NOT in 7.50 (see `style.md`, "Version"); stay on `cl_abap_tstmp`/`CONVERT TIME STAMP`.
-
-# Variables and internal tables
+## Variables and declarations
 
 - **[info]** Inline `DATA(...)` instead of upfront blocks. **ABAP has no block scoping**: a variable declared inside `IF`/`LOOP`/`CASE`/`DO`/`TRY` (including `FIELD-SYMBOLS`) is visible to the end of the method — use below in the code is valid, do not flag it as an error.
+
 - **[info]** One inline name (`DATA(x)`, `CATCH ... INTO data(x)`) cannot be declared twice in one method — that is a syntax error (not a review finding). Declare a variable used by several `CATCH`/loops once at method level (`DATA lx_error TYPE REF TO cx_root.`) and reuse it.
+
 - **[P2]** No implicit data declarations: `TABLES` (declares an implicit table work area; not allowed in classes; only for exchange with classic-Dynpro screen fields in the program's global part — ABAPDocu: "No table work areas except for classic dynpros"), `NODES` (obsolete — interface work areas for logical databases only), `TYPE ... WITH HEADER LINE`/`TABLE ... WITH HEADER LINE` (legacy). Use `DATA` with an explicit type.
+
 - **[P2]** Inline `DATA(x)` inside a branch (`IF`/`CASE`/`TRY` without `ELSE`/`CATCH`): if the branch did not run, the variable stays **initial** (the declaration is compiled regardless of the branch's execution) — using it below reads an empty value, not "not assigned". Declare before the branch or fill it in all branches.
+
 - **[P2]** Inline `FIELD-SYMBOL(<fs>)` inside a branch: if the branch did not run, the field-symbol stays **unassigned** — dereferencing it below raises a runtime error, not "an empty value". After each possible `ASSIGN`/`READ INTO <fs>` check `IS ASSIGNED` or `sy-subrc`; a prior successful assignment is not guaranteed to survive a later re-`ASSIGN`. Declare before the branch or guarantee assignment in every path.
+
 - **[P2]** Do not modify system fields (`sy-subrc`, `sy-tabix`, `sy-index`, `sy-datum`, …) — a style guideline, not a language restriction (a direct write is legal ABAP): a write is a side effect on shared runtime state that the next call/statement reads. Use a local variable for your own counter/flag.
+
 - **[P2]** Shadowed variable: a local (`lv_*`/`DATA(x)`) named like an attribute/global hides it — the wrong one is read. Do not name locals like attributes.
+
 - **[P2]** Do not use `sy-sysid`/`sy-sysuuid`/`sy-host` in business logic (ties to system/host). Identifiers — via configuration/constants.
+
 - **[P3]** Initialization with a named type: `DATA(lv_x) = VALUE ty_type( ).` instead of `DATA lv_x TYPE ty_type.`; anonymous types (`TABLE OF … WITH KEY`, `WITH DEFAULT KEY`) cannot be declared inline — use `TYPE` there.
+
 - **[P3]** No obsolete short declaration forms: `DATA lv_x.` is implicitly `c LENGTH 1`, `TYPES: t1, t2 TYPE p.` — implicitly `c`/standard lengths. Specify `TYPE`/`LENGTH`/`DECIMALS` explicitly (ABAPDocu "TYPES - implicit", obsolete language elements).
-- **[P3]** `INSERT INTO TABLE` — when uniqueness matters (`SORTED`/`HASHED`): a duplicate of the **primary key** — `sy-subrc = 4` (also: `sy-tabix` is not set); a duplicate of a **unique secondary key** — handleable exception `CX_SY_ITAB_DUPLICATE_KEY` (handle it or the program aborts); `INSERT` of a block where any row would duplicate — runtime error, not `sy-subrc`. `APPEND` — for `STANDARD` (insertion order, duplicates allowed). `line_exists()` instead of `READ TABLE … NO FIELDS`; `LOOP AT … WHERE` instead of a nested `IF`.
+
+
+## References
+
+- **[P1]** A reference variable is not a value — an **unbound** one addresses no object: `lo_ref->method( )` (an attribute read, a `->*` dereference) on it dumps `CX_SY_REF_IS_INITIAL`. Check `IS BOUND` before every dereference of a reference that can stay empty (an attribute set in one path only, a factory result, a chained `lo_a->lo_b->method( )`) and treat "unbound" as an error path — it is a crash, not "not found". A downcast (`?=`/`CAST`) is checked at runtime as well: a **bound** reference of an incompatible class dumps `CX_SY_MOVE_CAST_ERROR` — guard it with `IS INSTANCE OF` (`IF lo_obj IS INSTANCE OF zcl_x.`) before the cast. Neither check is a substitute for the other: an unbound reference is *not* an instance of anything, and casting an unbound one raises nothing — it returns an unbound target that dumps later at the first call. A reference created with `REF #( lv_local )` points at that exact data object and must not outlive it: do not return it, do not keep it in an attribute or a global when the object is a local of the method that created the reference. <!-- rule: ref-unbound-check -->
+
 - **[info]** `REF #( )` instead of `GET REFERENCE OF` for data references.
+
+
+## Structures and constructors
+
 - **[P3]** `MOVE-CORRESPONDING` → `CORRESPONDING #( ... )`: explicit `MAPPING`/`EXCEPT`, the contract is visible, safer when the structure changes. **Behavior differs**: `MOVE-CORRESPONDING src TO dst` keeps the fields of `dst` that have no counterpart in `src`; `dst = CORRESPONDING #( src )` re-initializes them. Preserve untouched fields — `dst = CORRESPONDING #( BASE ( dst ) src )`; for internal/nested tables analyze the equivalent per row separately.
+
 - **[P3]** Constructor operators (`VALUE`, `COND`, `SWITCH`, `CORRESPONDING`, `CONV`, `NEW`, `REDUCE`, `FILTER`, `REF`) — type via `#` when it is inferred from context: a typed variable/field, a typed method parameter, a table row. Explicit type (`COND type( )`, `VALUE type( )`) — only when the context gives no type: inline `DATA(...)` with no surrounding type, a generic parameter `c`/`n`/`x`, ambiguity (`DATA(x) = COND abap_bool( ... )`, `DATA(lt) = VALUE infty_tab( ... )`).
-- **[P1]** Do not delete table rows inside a loop (index shift → skips/duplicates). Collect keys and remove after the loop with one `DELETE ... WHERE key IN lt_range` — but `lt_range` must be a **selection table** (RANGE with `sign`/`option`/`low`/`high`), not a flat list of values; an **empty** range makes the condition always true (deletes **all** rows) — guard it. Or mark rows in the loop via a field-symbol (clear key fields) and delete `DELETE ... WHERE key IS INITIAL` — the second way only if living rows always have the key filled. <!-- rule: delete-rows-in-loop -->
-  Legal (do not flag): `DELETE lt_x.` / `DELETE … INDEX sy-tabix` of the current row inside its own `LOOP AT lt_x`.
-  Bad: `LOOP AT lt INTO <fs>. DELETE lt WHERE key = <fs>-key. ENDLOOP.` Good: collect the keys into a selection table, after the loop `DELETE lt WHERE key IN lt_range` — `lt_range = VALUE #( FOR wa IN lt ( sign = 'I' option = 'EQ' low = wa-key ) )` (an empty range would match all rows — guard it, see above).
-- **[P1]** Do not modify the *whole* table inside its own loop — `SORT`, bulk `DELETE ... WHERE key IN ...`, `MODIFY`/`INSERT` affecting many rows inside `LOOP AT lt_x`: rows shift/duplicate and the iteration reads mutated data. Collect keys and apply the bulk change after the loop (same pattern as the `DELETE` rule above). <!-- rule: modify-table-in-loop -->
-- **[P3]** No `DEFAULT KEY` — set a meaningful key.
-- **[info]** `REFRESH itab` is obsolete — `CLEAR itab`. For a table with a header line (legacy) `CLEAR itab[]` clears the body, `CLEAR itab` — the header; `REFRESH` — only the body.
-- **[P2]** Internal table type — by access pattern: `HASHED` (large, filled at once, read only by full key) / `SORTED` (order needed or read by partial key) / `STANDARD` (small, index access, `APPEND`); no key needed — `WITH EMPTY KEY`.
-- **[P3]** A single row — `READ TABLE` with `ASSIGNING`/`REFERENCE INTO` (or `itab[ key ]`), not `LOOP AT ... EXIT`.
-- **[P1]** An internal table index is 1-based: `itab[ 0 ]` / `READ TABLE ... INDEX 0` is always wrong (no such row). Never treat `0` as a valid index. <!-- rule: itab-index-1-based -->
-- **[P2]** A missing row is normal: read directly with `VALUE #( itab[ key ] OPTIONAL )` (no row → `IS INITIAL`) or `VALUE #( itab[ key ] DEFAULT ls_dflt )` instead of `TRY`/`CATCH cx_sy_itab_line_not_found`; no double read — not `line_exists( )` + a repeated `READ` (if the row must exist — `TRY` + `CATCH cx_sy_itab_line_not_found` and your own exception).
-- **[P2]** `sy-tabix` is set only by `READ TABLE`/`LOOP AT` (and a few index statements); `DELETE` does **not** set it; after `ENDLOOP` its previous value is restored; a `READ` by hash key sets 0, an unsuccessful binary search may set the insertion position. Do not read `sy-tabix` after arbitrary statements over the table — save the index to a local variable before changes.
-- **[P3]** `DESCRIBE TABLE itab LINES lv` → `lv = lines( itab )`; the index of a row → `line_index( itab[ ... ] )` (built-in table functions, 7.40+).
-- **[P2]** Nested `LOOP AT` over two internal tables (searching the second's row for each first) — O(n²): move the read to `READ TABLE … WITH KEY`/`itab[ key ]`, or build an index table in one pass (`key → sy-tabix`).
-- **[P3]** Grouping — `LOOP AT itab INTO ... GROUP BY ...` + `LOOP AT GROUP` (7.40+), not control-level `AT NEW`/`AT END OF` (those require a pre-`SORT`, non-obvious).
-- **[P2]** Reading a row — always `ASSIGNING <fs>` (or `REFERENCE INTO`/`itab[ key ]`): no copy, editing `<fs>` edits the table. `INTO data(ls)` — only when a copy is exactly what you need (mutating separately from the table). `READ TABLE ... INTO <fs>` is legal ABAP but **copies** the row into the data object `INTO` is currently bound to — the field-symbol itself stays bound to the same memory area (a new binding is created only by `ASSIGNING`); if `<fs>` is unassigned, `INTO <fs>` cannot be used as a target. Our project convention is to prefer `ASSIGNING`/`REFERENCE INTO` for clarity, not a language restriction.
-- **[P2]** `COLLECT` — for `HASHED` (hash key) and `SORTED` (binary search; a non-unique key is a warning, not broken); for `STANDARD` it degrades to (temp-hash or) a linear search — avoid it there.
-- **[P1]** `BINARY SEARCH` — only on a table sorted by its key fields (re-`SORT` after `APPEND`); `DELETE ADJACENT DUPLICATES` — only after `SORT` by the `COMPARING` fields. <!-- rule: binary-search-needs-sort -->
-
-# Strings
-
-- **[P1]** A slice `dobj+off(len)` (and `substring( val = … off = … len = … )`) raises `CX_SY_RANGE_OUT_OF_BOUNDS` (dump `STRING_OFFSET_TOO_LARGE`) if `[off, off+len)` is not entirely inside the string: empty/short string, `off` past the end. True for both `string` and `c` (for `c`, additionally `len = 0` is invalid); "return an empty string" only comes from an explicit `len = 0` for `string`, not from cutting at the boundary. Fix: `IF strlen( lv_s ) >= off + len` before the slice, or `CATCH cx_sy_range_out_of_bounds`; a slice from the edge — `left`/`right` (they cut at the boundary). <!-- rule: slice-offset-out-of-bounds -->
-- **[P1]** `find( )` not found → `-1` (not `0`, not an exception); `occ = -1` — the last occurrence from the end; `occ = 0` — invalid (`CX_SY_STRG_PAR_VAL`). <!-- rule: find-returns-minus1 -->
-- **[P1]** `replace( )`: `occ = 0` — replace ALL occurrences, default (`occ = 1`) — only the first. Without `sub`/`pcre` (only `off`/`len`) — replace a span by position; insert without replace — `insert( val = ... sub = ... off = ... )`. <!-- rule: replace-occ-semantics -->
-- **[P2]** Stripping/padding leading zeros in NUMC keys (`PERNR`, `MATNR`, …) — `|{ x ALPHA = OUT }|`/`CONVERSION_EXIT_ALPHA_OUTPUT` (strip) and `|{ x ALPHA = IN }|`/`CONVERSION_EXIT_ALPHA_INPUT` (pad), not `SHIFT ... LEFT DELETING LEADING '0'` (fragile: does not distinguish "all zeros" from an empty string, breaks symmetry with reverse ALPHA input).
-- **[P1]** `strlen( )` counts trailing spaces only in `string`: `strlen( 'abc   ' ) = 3` (`c` literal, fixed length), `strlen( \`abc   \` ) = 6` (`string` literal). `numofchar( )` counts characters except **trailing** blanks (leading/internal spaces count — `numofchar( \`  a b\` ) = 5`). <!-- rule: strlen-vs-numofchar -->
-
-- **[P3]** Control characters — from `cl_abap_char_utilities` (`cr_lf`, `newline`, `horizontal_tab`, `backspace`, `form_feed`, `charsize`), not hand-assembled literals.
-
-# Domains (fixed values) and GUID
-
-- **[P3]** Text/value of a fixed-value domain — `cl_reca_ddic_doma` (RE-FX): `get_text_by_value( EXPORTING id_name = <domain> id_value = <value> IMPORTING ed_text = <text> )`; reverse `get_value_by_text( EXPORTING id_name id_text if_ignore_case = abap_true IMPORTING ed_value EXCEPTIONS not_found = 1 )`; full list — `get_values( EXPORTING id_name IMPORTING et_values )` (rows with `ddtext`). Do not map value↔text by hand. Without RE-FX — FM `DD_DOMVALUES_GET`/`DDIF_DOMA_GET`.
-- **[P3]** Data-element label/text (short/medium/long) — `CL_RECA_DDIC_DTEL` (RE-FX), all with `id_langu = sy-langu` default and `EXCEPTIONS not_found = 1`: by data element `get_text( id_name = ... IMPORTING ed_fieldtext = ... ed_reptext = ... ed_scrtext_s/m/l = ... )`; by table field `get_text_by_fieldname( id_tabname = ... id_fieldname = ... IMPORTING ... )`; by ABAP data object `get_text_by_field( id_field = ... IMPORTING ... )` (resolves the DTEL name from the field). Existence — `exists( id_name = ... ) → rf_exists`; full definition (header `DD04V` + `TPARA` texts) — `get_complete( id_name = ... IMPORTING es_header = ... es_tpara = ... )`. Standard fallback — FM `DDIF_DTEL_GET`/`DDIF_FIELDINFO_GET`.
-- **[P3]** GUID — `cl_reca_guid=>guid_create( IMPORTING ed_guid_22 = DATA(lv_guid) )` (22 chars, C22); do not assemble by hand from `sy-uzeit`/random. Without RE-FX — `cl_system_uuid=>create_uuid_c22_static( )` (available since NW 7.0; the `*_static` methods declare no `RAISING`, but SAP's own code still wraps them in `TRY ... CATCH cx_uuid_error` — keep the catch defensively).

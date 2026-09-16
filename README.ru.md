@@ -93,25 +93,37 @@ abap-coding-standards/
 ├── LICENSE              # MIT
 └── abap-coding-standards/             # сам навык — на английском
     ├── SKILL.md         # точка входа и процесс проверки
+    ├── MAINTENANCE.md   # как поддерживается навык (инварианты, рантаймы)
+    ├── evals/           # эвалы активации и проверки + ABAP-фикстуры
     └── reference/       # файлы по темам, лениво подгружаются
         ├── errors.md        # обработка ошибок, исключения, LUW/ENQUEUE/COMMIT, update task
         ├── logging.md       # логирование (cl_reca_message_list, Application Log)
-        ├── data.md          # типы и DDIC, числа, дата/время, таблицы, строки
+        ├── data.md          # типы, переменные, ссылки, структуры
+        ├── numbers.md       # деньги, арифметика, округление, переполнение
+        ├── datetime.md      # даты, время, временные метки, часовые пояса
+        ├── strings.md       # строки, текст, срезы, шаблоны
+        ├── itab.md          # внутренние таблицы
+        ├── booleans.md      # булевы значения, условия, встроенные функции
         ├── open-sql.md      # Open SQL, производительность, buffer, client, JOIN
         ├── ldb.md           # логические БД (LDB-PNP/PNPCE/PCH), чтение инфотипов HR/OM
         ├── security.md      # безопасность, динамический SQL, авторизация, инфотипы HR
-        ├── hr.md            # HR PA/OM/PD, расчёт зарплаты, фреймворк cl_hrpa_*/cl_hrbas_*
+        ├── hr-pa.md         # HR PA: мастер-данные, фреймворк, чтение, контейнеры
+        ├── hr-pa-write.md   # HR PA: путь записи — trial/flush, блокировки, сообщения
+        ├── hr-pd.md         # HR PD/OM: объектный слой — чтение, экземпляры, связи
+        ├── hr-pd-write.md   # HR PD/OM: путь записи — объектный слой, dispatch BL
+        ├── hr-payroll.md    # HR: результаты расчёта, RGDIR, чтение кластеров
         ├── classes.md       # классы, сигнатуры, тело метода, DI
         ├── testing.md       # ABAP Unit: принципы, тест-классы, двойники, assertion
         ├── parallel.md      # параллелизм, bgRFC/aRFC, фоновые задания
         ├── cds-amdp.md      # CDS Views, AMDP (SQLScript)
         ├── dynamic-rtti.md  # динамическое программирование, RTTI/RTTS
-        ├── style.md         # язык и стиль, имена, булевы, форматирование
+        ├── style.md         # язык и стиль, форматирование, "Version" (чего нет в 7.50)
+        ├── naming.md        # имена и идентификаторы
+        ├── ddic.md          # словарь данных: ключи таблиц, буферизация, append-структуры, домены/DE
         ├── odata.md         # OData (SEGW / Gateway)
         ├── odata-v4.md      # особенности OData v4 (SEGW V4)
         ├── files-io.md      # файловый I/O (DATASET, gui_upload/download, кодировки, JSON/XML)
         ├── integration.md   # batch input (BDC), память, BAdI, RFC/HTTP
-        ├── ddic.md          # словарь данных: ключи таблиц, буферизация, append-структуры, домены/DE
         ├── alv.md           # вывод через ALV (SAP List Viewer), классические списки
         └── dynpro.md        # классические экраны Dynpro: PBO/PAI, CHAIN/FIELD, LOOP AT SCREEN
 ```

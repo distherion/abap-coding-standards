@@ -1,0 +1,58 @@
+# Maintaining this skill
+
+Not loaded with `SKILL.md` — read it before editing the skill, and run the checker after.
+
+The checker is **not part of the skill**: it lives next to it in the repo that hosts this one (skill = what a runtime loads and what somebody copies; a copied skill should not carry a checker it cannot run). Run it from the repo of the hosting project after an edit; exit code `0` — the invariants below hold, non-zero — the failure is printed. The checker never edits anything: a self-test mode breaks one invariant at a time in a copy under a temp dir and requires the matching problem back. A check that has silently stopped firing is the one failure a checker cannot report about itself, so every invariant has a fixture; a new invariant is not done until its fixture is in place.
+
+## Invariants
+
+1. **Slug** — a stable identifier in a trailing HTML comment (`<!-- rule: some-slug -->`, lower case, hyphenated, unique per file). Only on **P0/P1**: a slug is the promise "this rule names a real defect", so a rule carrying one is never silently downgraded to P2/P3, and a P2/P3/`[info]` rule never carries one. A P0/P1 rule that only points at another file's rule may name that slug in parentheses instead of carrying its own.
+2. **Citation** — rules are cited in a report **point-in-time as `file.md:line`** plus the `rule:`-slug in parentheses. A slug is not an anchor: an HTML comment creates no link target. Between files, refer to a rule by its slug and file, never by copying its text.
+3. **One owner per topic.** A rule lives in exactly one file — the topic file owns it. A second file that needs the fact keeps a one-line pointer to the owning slug, not a restatement. Duplication is what the near-duplicate check catches.
+4. **Severity** — assigned per the levels in `SKILL.md` ("Priorities"), by what the defect does, not by how the code looks. A finding in someone else's code keeps its usual severity; only purely stylistic rules are relaxed to P3. Raising/lowering a marker means re-checking the slug (invariant 1) and the intro of the file (invariant 6).
+5. **Negative claims** — a **named** API/parameter/statement that does **not** exist carries the lead-in `**does not exist:**`, so the whole class stays greppable as one list: `rg -n '\*\*does not exist:\*\*' reference/*.md` (the checker prints the count as `"does not exist" claims in reference/`; the legend line in `SKILL.md` is a further match but is not a claim). A negative statement about a *rule* rather than a name (a form that is not the project convention, a pattern that is not required) is ordinary prose and takes no lead-in. These claims are as verifiable as positive ones and are the rules that stop an invented API.
+6. **File intro** — every `reference/*.md` starts with a `>` blockquote: one line of scope, then pointers to the sibling files this topic borders on. The intro carries **no** `[P#]`/`[info]`/`[behavior]` marker — a marker makes a line a rule, and the intro is not a rule. Then the bullets. No files outside `reference/` are loaded by topic.
+7. **Release markers** — a statement true only from a release later than 7.50 is marked inline `(7.5x+)` (e.g. `(7.54+)`; an older, still-valid release — `(7.40+)`) and collected in `reference/style.md`, "Version: what is NOT in 7.50". The inline marker carries the fact, the collection is its index: a marker without a matching row in the list, and a row no file points at, are both defects — the checker checks both directions. A claim about the target release itself lives only in the HR file intros.
+8. **Size** — `SKILL.md` is always in context: keep it under 12 000 chars (the description — a catalog entry, not a document — under the spec's 1 024). A `reference/*.md` file is opened whole by topic: keep it under ~15 000 chars / ~4 000 tokens, and split by topic when it grows past that; never merge two topics to save a file. A single rule stays under 2 000 chars as **one block**: past that it is split into a short lead plus sub-points (`  - **What breaks:** …` / `**Fix:** …`) or a fenced example — the structure is what makes a long rule readable, and a rule that has grown into a wall is a rule nobody reads to the end. The checker enforces all four.
+9. **File references** — every `reference/<x>.md` named in any file, and every `*.md` name written in backticks, points at a file that exists, and the map in `SKILL.md` lists exactly the files in `reference/`: a row may group several files under one "when the task touches…" case, but there is no file without a row and no name in a row without a file. The checker enforces both. A dead pointer in the always-loaded `SKILL.md` is the most expensive kind of error in this skill — it silently sends the reader to a file that is not there.
+10. **Frontmatter** — only the Agent Skills spec fields: `name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools`. A key of your own goes under `metadata:`; as a top-level key it is a **load error** outside Claude Code (`Unexpected key(s) in SKILL.md frontmatter`), and the skill silently stops loading. `name` must equal the directory that holds `SKILL.md` — the spec requires it and some runtimes validate it. No Claude-only switches (`when_to_use`, `paths`, `context`, `model`, `user-invocable`, `!`-injection) — they restrict the skill to one harness, and a strict validator rejects them as unknown fields. The checker enforces the key set, the directory match, and the spec's own limits on `name` (1-64 chars, `[a-z0-9-]`, no leading/trailing or doubled hyphen, no reserved word `anthropic`/`claude`), `description` (1-1024 chars, one line, no XML tag) and `compatibility` (<=500 chars).
+
+## Portability across runtimes
+
+The skill is a plain `SKILL.md` tree, so it is not tied to Claude Code — but runtimes differ in what they check and how they load, and the differences matter before an edit:
+
+- **Validation.** The checker is this repo's own gate. The spec's reference validator is `skills-ref`:
+
+  ```
+  skills-ref validate <skill-dir>        # "Valid skill: <dir>" + exit 0, or the failures + exit 1
+  skills-ref read-properties <skill-dir> # the frontmatter as JSON
+  skills-ref to-prompt <skill-dir>       # the `<available_skills>` entry a runtime builds from the description
+  ```
+
+  It is **stricter than `claude plugin validate`**, which passes frontmatter this skill must not carry — measured: adding `model: opus` gives `Unexpected fields in frontmatter: model. Only allowed-tools, compatibility, description, license, metadata, name are allowed.`, and a `name` that does not match its directory gives both the character rule and the directory mismatch. `skillcheck` adds a client-extension registry and 36 rules on top of it. Installing either is a deliberate step: from a source you have read, on purpose — not as part of a routine run.
+- **The catalog entry is the description and nothing else.** `skills-ref to-prompt` prints exactly what every runtime puts in front of the model, which is the cheapest way to see what the skill is competing with among the other 78.
+- **Discovery paths.** The cross-agent convention is `<project>/.agents/skills/` and `~/.agents/skills/`; per-runtime paths are `.claude/skills/`, `.github/skills/` (Copilot/VS Code), `.cursor/skills/`, `.gemini/skills/`, `.codex/skills/` — project-level, and the same name under `~/.<runtime>/`. Codex also reads `~/.codex/skills/` and `/etc/codex/skills`; Gemini CLI loads a workspace skill only from a trusted folder. An install is a copy or a symlink of the skill directory.
+- **What is loaded when.** The three tiers hold everywhere: `name` + `description` in the catalog, the body on activation, `reference/*.md` on demand. Gemini CLI asks for consent before injecting the body and then grants access to the whole skill directory; Copilot/VS Code need `chat.agent.skills` enabled. Only `SKILL.md` is required — the extra folders are a convention, and both spellings (`reference/`, `references/`) appear in vendor documentation.
+- **Activation does not carry across turns everywhere.** Codex takes the skill for the turn that named or matched it and drops it afterwards, so a rule that has to hold over a long session has to be re-invoked. That is why the description, not the body, carries every trigger the skill should answer to.
+- **Precedence.** Where the runtime has a second instruction mechanism (Cursor rules, `AGENTS.md`, `CLAUDE.md`), it wins over a skill on conflict — the same "project convention wins" the skill states for its own rules.
+- **No harness vocabulary.** `reference/*.md` is read by whichever agent loaded it: no tool names, no runtime switches, no "run the Bash tool" — and the checker rejects Windows-style path separators for the same reason (a backslash-separated path is a dead reference on every runtime that is not Windows).
+
+Activation itself is measured, not assumed: the eval runner sends the queries in `evals/evals.json` (the classes `explicit`, `implicit`, `contextual`, `negative`) and reports whether the session actually called the skill — the negative ones must not.
+
+What the skill produces once it is active is measured the same way: each scenario in `evals/evals.json` runs twice — with the skill and against an empty config directory plus an empty `HOME` — and a scenario counts as evidence only if the baseline fails its checks. One of the four is the **P0 band** (a dynamic `WHERE` built from input, a `CALL TRANSACTION` without an authorization check): it is the band a review of ordinary code never reaches, so it is the one least likely to appear without the rules.
+
+## What the checker does not do
+
+- **Does not verify the facts.** Names and signatures are checked by hand against a definition (see "Context — don't invent" in `SKILL.md`): an abapGit export of a standard package, `SAP Help`, a note. A rule lifted from memory is a rule that will be wrong.
+- **Does not decide severity** — only reports which files have no P0/P1 rule at all, and which files are more than a third `[info]`. A topic with no P0/P1 is either misclassified or not about findings; a file whose rules are mostly `[info]` has stopped producing findings — an `[info]` never fires on review, so a fact there with a defect consequence is a rule that will never be reported. Both notes are a prompt to look, not a defect.
+- **Does not judge wording.** Wording is edited by hand, per the style of the neighbouring file.
+
+## Optional: are the names used anywhere?
+
+With a corpus of real code to compare against, the names the skill recommends can be checked for existence. Build one token list per corpus and pass them all to the checker — the union is far less noisy than a single package:
+
+```
+rg -o --no-filename -i '[A-Za-z0-9_/]{4,}' <corpus>/src | sort -u > /tmp/corpus.txt
+```
+
+The report has two lists: names absent from the corpus (a to-verify list against `SAP Help`), and names absent but sitting inside a `**does not exist:**` claim (expected — that claim says they are absent). Absent is **not** wrong: the corpus covers only the packages it was exported from. Every absent name needs a decision — verified against a definition, or the rule is dropped. A name nobody verified is the next invented API.

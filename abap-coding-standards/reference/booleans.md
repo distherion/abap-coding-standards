@@ -1,0 +1,15 @@
+# Booleans, conditions and built-in functions
+
+> Booleans, conditions, predicates and the built-in functions of 7.50 that replace hand-written checks.
+> Related: `style.md` (the language and formatting rules), `classes.md` (method design), `data.md` (types).
+- **[P3]** `abap_true`/`abap_false` instead of the literal `'X'`/`' '`. Check an `abap_bool` via the constants — `= abap_true`/`= abap_false`, not `IS INITIAL`/`IS NOT INITIAL` or a space comparison: `IS INITIAL` reflects technical emptiness of the data object, the constant — the semantic value (and the pair `abap_true`/`abap_false` is the single project-wide definition).
+- **[P1]** Booleans from conditions — `xsdbool( )`: returns `c(1)`, compare with `abap_true`/`abap_false`. `boolc( )` returns `string` (`X`/space) — do not compare with `abap_true`/`abap_false` (the `c`↔`string` conversion gives a wrong result). `boolx( bool = ... bit = ... )` — a bit by number. <!-- rule: booleans-xsdbool-boolc -->
+- **[P3]** Positive conditions (`IS NOT` instead of `NOT IS`); `CASE` instead of `ELSE IF`.
+- **[P3]** Complex conditions (`IF a AND b AND c`) — extract into a predicate method `is_...` with a telling name.
+- **[P3]** Predicative call of a boolean method: `IF is_valid( ).` / `IF NOT can_archive( ).` — the condition reads like a phrase; a method called in a condition must be free of side effects (called for its result, not its effect).
+- **[P3]** ABAP evaluates `AND`/`OR` from left to right with **short-circuit**: once the result is determined by the left side, the right side is not evaluated (ABAPDocu "Logical expressions"). The documentation recommends placing the cheap/usually-false comparison first in an `AND` chain.
+- **[info]** `WHEN OTHERS` in `CASE` — only last: it must be the final branch (a `WHEN` after it is a syntax error). `WHEN OTHERS` is checked by the syntax check, so "shadowing the following `WHEN`" cannot happen in compiling code — do not flag it as an error or a shadowing defect.
+
+- **[info]** String (7.40+): `find`, `find_end`, `find_any_of`, `find_any_not_of`, `count`, `count_any_of`, `count_any_not_of`, `contains`, `contains_any_of`, `contains_any_not_of`, `substring`, `substring_after`, `substring_before`, `substring_from`, `substring_to`, `replace`, `insert`, `condense`, `segment`, `shift_left`, `shift_right`, `repeat`, `reverse`, `match`, `matches`, `distance`, `to_upper`, `to_lower`, `to_mixed`, `from_mixed`, `concat_lines_of`, `cmin`, `cmax`, `numofchar`, `strlen`, `xstrlen`, `escape`.
+- **[info]** Numeric (7.40+): `abs`, `sign`, `ceil`, `floor`, `trunc`, `frac`, `round`, `rescale`, `ipow`, `nmin`, `nmax`, `sqrt`, `sin`/`cos`/`tan`, `asin`/`acos`/`atan`, `sinh`/`cosh`/`tanh`, `exp`, `log`, `log10`.
+- **[P2]** Predicates `contains( )`, `matches( )`, `line_exists( itab[ ... ] )` are **predicate functions** — usable in logical expressions, not functions returning a value: you cannot assign them straight to a `c(1)` variable (use `xsdbool( )`); `line_exists` does not raise `CX_SY_ITAB_LINE_NOT_FOUND`.
