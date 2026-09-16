@@ -93,25 +93,37 @@ abap-coding-standards/
 ├── LICENSE              # MIT
 └── abap-coding-standards/             # the skill, in English
     ├── SKILL.md         # entry point and review workflow
+    ├── MAINTENANCE.md   # how the skill is maintained (invariants, runtimes)
+    ├── evals/           # activation and review evals + ABAP fixtures
     └── reference/       # topic files, loaded on demand
         ├── errors.md        # error handling, exceptions, LUW/ENQUEUE/COMMIT, update task
         ├── logging.md       # logging (cl_reca_message_list, Application Log)
-        ├── data.md          # types and DDIC, numbers, date/time, tables, strings
+        ├── data.md          # types, variables, references, structures
+        ├── numbers.md       # money, arithmetic, rounding, overflow
+        ├── datetime.md      # dates, times, time stamps, time zones
+        ├── strings.md       # strings, text, slices, patterns
+        ├── itab.md          # internal tables
+        ├── booleans.md      # booleans, conditions, built-in functions
         ├── open-sql.md      # Open SQL, performance, buffer, client, JOIN
         ├── ldb.md           # logical databases (LDB-PNP/PNPCE/PCH), HR/OM infotype reads
         ├── security.md      # security, dynamic SQL, authorization, HR infotypes
-        ├── hr.md            # HR PA/OM/PD, payroll, cl_hrpa_*/cl_hrbas_* framework
+        ├── hr-pa.md         # HR PA master data: framework, read path, containers
+        ├── hr-pa-write.md   # HR PA write path: trial/flush, locks, messages
+        ├── hr-pd.md         # HR PD/OM object layer: reads, instances, relations
+        ├── hr-pd-write.md   # HR PD/OM write path: object layer, dispatch BL
+        ├── hr-payroll.md    # HR payroll results, RGDIR, cluster reads
         ├── classes.md       # classes, signatures, method body, DI
         ├── testing.md       # ABAP Unit: principles, test classes, doubles, assertions
         ├── parallel.md      # parallelism, bgRFC/aRFC, background jobs
         ├── cds-amdp.md      # CDS Views, AMDP (SQLScript)
         ├── dynamic-rtti.md  # dynamic programming, RTTI/RTTS
-        ├── style.md         # language and style, names, booleans, formatting
+        ├── style.md         # language and style, formatting, "Version" (what is NOT in 7.50)
+        ├── naming.md        # names and identifiers
+        ├── ddic.md          # ABAP Dictionary: table keys, buffering, append structures, domains/DE
         ├── odata.md         # OData (SEGW / Gateway)
         ├── odata-v4.md      # OData v4 (SEGW V4) specifics
         ├── files-io.md      # file I/O (DATASET, gui_upload/download, encodings, JSON/XML)
         ├── integration.md   # batch input (BDC), memory, BAdI, RFC/HTTP
-        ├── ddic.md          # ABAP Dictionary: table keys, buffering, append structures, domains/DE
         ├── alv.md           # output with ALV (SAP List Viewer), classic lists
         └── dynpro.md        # classic Dynpro screens: PBO/PAI, CHAIN/FIELD, LOOP AT SCREEN
 ```

@@ -1,5 +1,8 @@
 # Integration: BDC, memory, BAdI, RFC/HTTP
 
+> Batch input / `CALL TRANSACTION`, the memory areas (ABAP/SAP/Shared), BAdI, BOPF, remote communication (RFC/HTTP), the transport-release gate.
+> Related: `parallel.md` (bgRFC/aRFC, background jobs), `security.md` (RFC users, command injection), `odata.md`/`odata-v4.md` (services), `errors.md` (the commit a remote call performs, LUW around it).
+
 ## Batch input / CALL TRANSACTION (BDC)
 
 - **[P2]** Loading via a transaction — `CALL TRANSACTION <tcode> USING lt_bdcdata OPTIONS FROM ls_ctu_params MESSAGES INTO lt_msg`. `MESSAGES INTO` (table `bdcmsgcoll`) is strongly recommended: without it the transaction's messages are not collected (an error is still signaled by `sy-subrc`). Determine success not by `sy-subrc` alone (reliable: `0` = processed successfully, `< 1000` = error in the called transaction, e.g. `1001` = processing error — not a success marker) but by the absence of `msgtyp = 'E'`/`'A'` in `lt_msg` (or by the transaction's success message). Field is `msgtyp`, not `msqtyp`.
@@ -16,13 +19,13 @@
 
 ## BAdI (enhancement framework)
 
-- **[P3]** The new (kernel) BAdI syntax — `GET BADI lo_badi FILTERS filter = lv_value` (no `sy-subrc` from `GET BADI` — handle the class-based exceptions instead: `cx_badi_not_implemented`/`cx_badi_multiply_implemented`; there is no `cx_badi_multiple_implementations`) + `CALL BADI lo_badi->method( )`; cleaner than the classic `GET BADI` with a proxy object. For new points — only the new syntax.
-- **[info]** BAdI **definition** (SE18): the fallback when no active implementation exists is `DEFAULT IGNORE` or `DEFAULT FAIL` in the definition — `DEFAULT FAIL` raises an error for an unimplemented BAdI, `DEFAULT IGNORE` silently does nothing; choose deliberately.
+- **[P3]** The new (kernel) BAdI syntax — `GET BADI lo_badi FILTERS filter = lv_value` (no `sy-subrc` from `GET BADI` — handle the class-based exceptions instead: `cx_badi_not_implemented`/`cx_badi_multiply_implemented`; **does not exist:** `cx_badi_multiple_implementations`) + `CALL BADI lo_badi->method( )`; cleaner than the classic `GET BADI` with a proxy object. For new points — only the new syntax.
+- **[P3]** BAdI **definition** (SE18): the fallback when no active implementation exists is `DEFAULT IGNORE` or `DEFAULT FAIL` in the definition — `DEFAULT FAIL` raises an error for an unimplemented BAdI, `DEFAULT IGNORE` silently does nothing; choose deliberately.
 - **[P2]** Extension point: first a ready BAdI/customer exit; none — an explicit enhancement (source/function/class); an implicit enhancement — last. Do not modify SAP code directly — only via the enhancement mechanism.
 
 ## BOPF
 
-- **[info]** BOPF (Business Object Processing Framework; Fiori/transactional apps on NetWeaver) owns the business data via its API. Do not read/write BOPF tables directly — only through the framework (node instances, `retrieve_by_association`, the modify + determination/validation/action stack): direct DB access bypasses the buffer and the model logic. Verify the BOPF scope in SE24 (`IF_BOPF_*`) on the target system before relying on it.
+- **[P2]** BOPF (Business Object Processing Framework; Fiori/transactional apps on NetWeaver) owns the business data via its API. Do not read/write BOPF tables directly — only through the framework (node instances, `retrieve_by_association`, the modify + determination/validation/action stack): direct DB access bypasses the buffer and the model logic.
 
 ## Remote communication (RFC / HTTP)
 

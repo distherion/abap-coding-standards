@@ -1,0 +1,177 @@
+{
+  "skill": "abap-coding-standards",
+  "notes": "Four activation evals: each one fails when the skill is off and passes when it is on (measured: all three differ between the arms). The checks are deterministic regexes over the answer text — no judge model — so a run costs one call per arm and is reproducible. The queries name the skill on purpose: an unnamed query measures whether the model reaches for a skill, not whether this skill is any good. The baseline arm runs with an empty config directory and an empty HOME — with a real HOME the session finds the skill's files on disk through the user's CLAUDE.md and answers from them without ever loading the skill. A P0/security scenario is included on purpose: `[P0]` is the band a review of ordinary code never reaches, so it is the one least likely to be produced without the rules.",
+  "evals": [
+    {
+      "id": "invented-api",
+      "query": "Напиши на ABAP 7.50 метод, который по дате приёма (begda) и дате увольнения (endda) считает стаж сотрудника в месяцах. Только код метода. Следуй скиллу abap-coding-standards.",
+      "files": [],
+      "expected_behavior": [
+        "Uses a date utility that exists on the target release (cl_reca_date, cl_hrpad_date_computations or one of the standard FMs) instead of writing the month arithmetic by hand.",
+        "Does not call a generic ADD_MONTH_TO_DATE — the FM family is country-specific and only the country variants exist.",
+        "Does not use utclong, DATN or TIMN — those arrive after 7.50.",
+        "Says which release the recommendation belongs to, or names the assumption."
+      ],
+      "checks": [
+        {
+          "label": "uses a real date utility",
+          "regex": "cl_reca_date|cl_hrpad_date_computations|RP_CALC_DATE_IN_INTERVAL|RE_ADD_MONTH_TO_DATE|cl_hrpadru_date_tools"
+        },
+        {
+          "label": "no call to a generic ADD_MONTH_TO_DATE",
+          "regex": "(?<![A-Z_])ADD_MONTH_TO_DATE\\s*\\(",
+          "absent": true
+        },
+        {
+          "label": "no post-7.50 types",
+          "regex": "\\butclong\\b|\\bDATN\\b|\\bTIMN\\b",
+          "absent": true
+        },
+        {
+          "label": "cites a skill reference file",
+          "regex": "[\\w-]+\\.md:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "broken-luw",
+      "query": "Отревью broken_luw.abap. Найди дефекты. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/broken_luw.abap"
+      ],
+      "expected_behavior": [
+        "Rates the split LUW (header committed before the item rows) as P1 — an interruption leaves a payment header without its items.",
+        "Cites the finding by file and line.",
+        "Cites the skill's rule by reference file and line (errors.md:28) — the artifact a session without the skill does not produce.",
+        "Does not rate the missing pretty-printing or the old INSERT form above the money defect."
+      ],
+      "checks": [
+        {
+          "label": "rates the split LUW P1",
+          "regex": "(?i)\\bP1\\b"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        },
+        {
+          "label": "names the COMMIT split",
+          "regex": "(?i)commit|LUW"
+        },
+        {
+          "label": "cites a skill reference file",
+          "regex": "[\\w-]+\\.md:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "select-in-loop",
+      "query": "Отревью select_in_loop.abap. Найди дефекты. Только отчёт, без переписывания кода. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/select_in_loop.abap"
+      ],
+      "expected_behavior": [
+        "Rates the SELECT SINGLE inside the LOOP as P2 (a query per row), not as a style nit.",
+        "Suggests one read into a table (JOIN or a key list) instead.",
+        "Cites the finding by file and line.",
+        "Cites the skill's rule by reference file and line (open-sql.md:NN)."
+      ],
+      "checks": [
+        {
+          "label": "rates it P2",
+          "regex": "(?i)\\bP2\\b"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        },
+        {
+          "label": "proposes a set-based read",
+          "regex": "(?i)JOIN|INTO TABLE|FOR ALL ENTRIES|одним запросом|одной выборкой"
+        },
+        {
+          "label": "cites a skill reference file",
+          "regex": "[\\w-]+\\.md:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "authz-injection",
+      "query": "Отревью authz_injection.abap. Найди дефекты. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/authz_injection.abap"
+      ],
+      "expected_behavior": [
+        "Rates the statement text built from the input (the dynamic WHERE over a selection-screen value) as P0 — SQL injection — or the CALL TRANSACTION with a variable transaction code WITHOUT AUTHORITY-CHECK as P0 — an authorization bypass; both are the skill's P0 band.",
+        "Names the rule that carries the defect: security.md:6 (no-sql-string-concat) and/or security.md:23 (no-authority-check-bypass).",
+        "Notices that the direct Open SQL read of pa0008 bypasses the automatic P_ORGIN check of HR_READ_INFOTYPE and that no AUTHORITY-CHECK covers the report.",
+        "Says the fix concretely: a host variable (@iv_pernr) with a constant statement text, and an explicit AUTHORITY-CHECK before the call.",
+        "Cites the finding by file and line."
+      ],
+      "checks": [
+        {
+          "label": "rates the top defect P0",
+          "regex": "(?i)\\bP0\\b"
+        },
+        {
+          "label": "names the SQL injection",
+          "regex": "(?i)инъекци|injection"
+        },
+        {
+          "label": "names the authorization bypass",
+          "regex": "(?i)WITHOUT AUTHORITY-CHECK|обход (проверки )?авторизац|authorization bypass"
+        },
+        {
+          "label": "cites the P0 rule's slug",
+          "regex": "no-sql-string-concat|no-authority-check-bypass"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "class": "explicit",
+      "expect": "activate",
+      "files": [],
+      "query": "Используй скилл abap-coding-standards и скажи, чем `[info]` отличается от `[P2]`."
+    },
+    {
+      "class": "implicit",
+      "expect": "activate",
+      "files": [
+        "evals/fixtures/select_in_loop.abap"
+      ],
+      "query": "Во сколько упадёт ST05 на этом методе: тут запрос в цикле и я не уверен, что это правильно."
+    },
+    {
+      "class": "contextual",
+      "expect": "activate",
+      "files": [
+        "evals/fixtures/broken_luw.abap"
+      ],
+      "query": "Поправь опечатку в этом .abap файле — переменная называется lv_pernr, а используется lv_pernrs."
+    },
+    {
+      "class": "negative",
+      "expect": "no-activate",
+      "files": [],
+      "query": "Сделай контроллер SAPUI5 для списка сотрудников."
+    },
+    {
+      "class": "negative",
+      "expect": "no-activate",
+      "files": [],
+      "query": "Настрой партнёрский профиль IDoc для входящего HRMD_A."
+    },
+    {
+      "class": "negative",
+      "expect": "no-activate",
+      "files": [],
+      "query": "Посчитай выручку по кварталам в BW-запросе."
+    }
+  ]
+}

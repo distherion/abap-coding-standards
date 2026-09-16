@@ -1,6 +1,6 @@
 # OData (SEGW / Gateway)
 
-> **[info]** The main part of this section — OData **v2** (the default in Gateway 7.40/7.50). OData **v4** also exists in 7.50 (SAP Gateway, SEGW with service type V4) — see `reference/odata-v4.md`. `@OData.publish: true` on a CDS view is SADL **auto-exposure** (typically v2) — not a RAP marker; RAP (`service definition`/`service binding`, XCO) — ABAP Cloud / S/4HANA, not classic 7.50 (see `style.md`, "Version" — XCO/RAP).
+> The main part of this section — OData **v2** (the default in Gateway 7.40/7.50). OData **v4** also exists in 7.50 (SAP Gateway, SEGW with service type V4) — see `reference/odata-v4.md`. `@OData.publish: true` on a CDS view is SADL **auto-exposure** (typically v2) — not a RAP marker; RAP (`service definition`/`service binding`, XCO) — ABAP Cloud / S/4HANA, not classic 7.50 (see `style.md`, "Version" — XCO/RAP).
 
 - **[P2]** Implement logic only in `*_DPC_EXT`/`*_MPC_EXT`. The base `*_DPC`/`*_MPC` are regenerated on every service regeneration in SEGW — code there is silently lost.
 - **[P2]** CRUD methods in `DPC_EXT`: `GET_ENTITYSET` (collection), `GET_ENTITY` (by key), `CREATE_ENTITY` (`io_data_provider->read_entry_data( IMPORTING es_data = ... )` → return `er_entity`), `UPDATE_ENTITY`, `DELETE_ENTITY`.
@@ -13,5 +13,5 @@
 - **[P3]** SEGW: technical name `Z_<desc>`; do not rename generated classes (`_MPC`/`_DPC`/`_MPC_EXT`/`_DPC_EXT`).
 - **[P3]** Properties: name and case — as in the data model; a description field — suffix `Name` (`CompanyName`), not `Desc`/`Descr`/`Text`.
 - **[P2]** `GET_ENTITYSET` — one method per entity set, `CASE` — the dispatcher; narrow via `$filter`/`$select`/`$top`/`$skip`; related data — `$expand`, not `$batch`; make `$expand` "basic". Server-side read of `$filter` — `io_tech_request_context->get_filter( )` → `get_filter_select_options( )`; converted keys/params — `get_converted_keys( IMPORTING es_key_values )`/`get_converted_parameters( )`.
-- **[P2]** Optimized SADL `$expand` is enabled in `DPC_EXT`; with it `get_entity(set)` are not called — instead `get_expanded_entity(set)`. Redefining the getters does not by itself disable the optimized expand (verify per service which access path is actually taken).
+- **[P2]** Optimized SADL `$expand` is enabled in `DPC_EXT`; with it `get_entity(set)` are not called — instead `get_expanded_entity(set)`. Redefining the getters does not by itself disable the optimized expand (the access path taken is service-dependent).
 - **[info]** Diagnostics/test: `/IWFND/GW_CLIENT` (manual CRUD), `/IWFND/TRACES` (call traces), `/IWFND/ERROR_LOG` (runtime errors), `/IWFND/MAINT_SERVICE` (service registration/maintenance); ICF node activation — in SICF.

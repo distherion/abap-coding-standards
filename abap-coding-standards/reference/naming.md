@@ -1,0 +1,12 @@
+# Names
+
+> Naming: identifier conventions, prefixes, development object names, name limits.
+> Related: `style.md` (language, formatting, version), `data.md` (types and variables), `ddic.md` (DDIC object names).
+- **[P3]** `snake_case` everywhere (ABAP is case-insensitive).
+- **[P3]** No noise words (`data`, `info`, `object`, `controller`); no unnecessary abbreviations — one abbreviation, one meaning everywhere.
+- **[P3]** Classes — nouns, methods — verbs; collections — plural (`lt_employees`); one word — one concept (not `get`/`read`/`fetch` for the same action).
+- **[P3]** Prefixes — SAP convention, we keep them (a deliberate rejection of Clean ABAP's "no prefixes"): parameters `iv_`/`is_`/`it_`/`ir_` (import), `ev_`/`es_`/`et_`/`er_` (export), `cv_`/`cs_`/`ct_` (changing), `rv_`/`rs_`/`rt_` (returning); locals `lv_`/`ls_`/`lt_`/`lo_`/`lr_`/`lf_`; attributes `mv_`/`ms_`/`mt_`/`mo_`/`mr_`.
+- **[P3]** Development object names — only in English (`abap-best-practice`, Clean ABAP); search in the solution domain (computer-science terms: queue, tree) and the problem domain (business terms: account, ledger); names must be pronounceable; names of design patterns — only when the pattern is really implemented (`file_factory` only if it is a factory).
+- **[info]** **Name limits** (SAP constraints): DB table (transparent table, DDIC) — 16; view — 16 (letters, digits, underscores, must start with a letter); local internal table — 30; global class/interface — 30; program (report/include) — 30 (40 only for internal SAP tool names with 5-char suffixes); FM — 30; function group — 26 (generates `SAPL<fg>`/`L<fg>TOP`); message class — 20; package — 30 (`Z`/`Y` or namespace); domain / data element / structure / table type / search help — 30; field/component — 30 (up to BASIS 7.02 — 16); lock object — 16 (name with `E`, generates `ENQUEUE_`/`DEQUEUE_`). The namespace prefix `/xxx/` counts toward the limit.
+- **[P2]** New objects — only `Z`/`Y` or namespace `/xxx/`; do not create in the SAP range (`A`–`X`) — conflict on upgrade/import of packages.
+- **[P1]** Do not name methods/classes after built-in functions (`lines`, `strlen`, `line_exists`, `to_upper`, `condense`, `substring`) — a call inside the class would go to your method, not the built-in function. (Note: `value`/`cond`/`switch` are **not** reserved — they can be names, only the readability/semantics matters.) <!-- rule: no-builtin-method-names -->
