@@ -1,8 +1,0 @@
-Restructure skill into per-topic reference files
-
-Split monoliths into topic files (data -> data/numbers/datetime/strings/itab,
-hr.md -> hr-pa/hr-pa-write/hr-pd/hr-pd-write/hr-payroll, style splits out
-naming/booleans); drop reviewing.md. Add MAINTENANCE.md (10 invariants) and
-evals/ (4 review evals + fixtures). Fix stale section pointers, drop
-unverifiable SAP source line-number citations, and stop mentioning the
-hosting-repo checker in the shipped skill.
