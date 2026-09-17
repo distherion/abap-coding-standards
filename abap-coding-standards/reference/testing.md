@@ -17,8 +17,8 @@
 - **[P3]** A local test class in the test-include of the class under test (found on refactor, run in one click). Component-/integration tests — in concrete local test classes (not a `$TMP` report); global `FOR TESTING` classes are for reusable helpers or an abstract base (fixtures/asserts) shared via inheritance by executable test classes — a global **`ABSTRACT`** test class itself is not instantiated by the ABAP Unit framework, so its own test methods would never run.
 - **[P3]** Name the test class by purpose/setup, not "test": `ltc_<public-method>` or `ltc_<common setup>`. Anti-patterns: `ltc_test`, repeating the name of the class under test.
 - **[P3]** Common helper methods (custom asserts, data factories) — in a helper class (`lth_*`), accessed via inheritance or delegation, do not duplicate in each test.
-- **[P2]** Mandatory additions: `FOR TESTING`, `RISK LEVEL HARMLESS` (or `DANGEROUS` — only if the test actually writes to the DB/external systems, in a unit — almost never), `DURATION SHORT`/`MEDIUM`/`LONG`. Do **not** declare an executable test class `ABSTRACT` — the ABAP Unit framework must instantiate it to run its test methods; `ABSTRACT` is only for a common base fixture with concrete subclasses.
-- **[info]** Run in ADT: `Ctrl+Shift+F10` — all tests of the class, `Ctrl+Shift+F11` — with coverage, `Ctrl+Shift+F9` — preview, `Ctrl+Shift+F12` — with test relations (macOS — `Cmd`).
+- **[P2]** Mandatory additions: `FOR TESTING`, `RISK LEVEL HARMLESS` (or `DANGEROUS` — only if the test actually writes to the DB/external systems, in a unit — almost never), `DURATION SHORT`/`MEDIUM`/`LONG`.
+- **[info]** Run from the editor (ADT) — all tests of the class, with coverage, or in preview; the run report shows per-method results.
 
 ## Code under test
 
@@ -27,13 +27,13 @@
 
 ## Injecting test doubles
 
-- **[P2]** Injection — per `classes.md`: dependencies via the constructor; a setter — only for genuinely optional or configured-per-instance dependencies. It must not swap a required dependency halfway or bypass the constructor. (FRIENDS injection into private fields after `NEW` — no, see the `LOCAL FRIENDS` rule.)
+- **[P3]** Injection — per `classes.md`; the unique half here: it must not swap a required dependency halfway or bypass the constructor. (FRIENDS injection into private fields after `NEW` — no, see the `LOCAL FRIENDS` rule.)
 - **[P3]** Test doubles — `cl_abap_testdouble=>create( 'zif_x' )` + `configure_call( ... )->returning( ... )`, shorter and clearer than a hand-written stub class.
 - **[P2]** `TEST-SEAM`/`TEST-INJECTION` — a temporary workaround for legacy, not a permanent solution (invasive, tangled in private dependencies). New code — no test seam.
 - **[P2]** `LOCAL FRIENDS` — only to call the `CREATE PRIVATE` constructor of the tested class with a test double. Do not reach through it into private members for mock data (fragile).
 - **[P2]** Do not add "test-only" branches to production code (`IF is_unit_test_running = abap_true.`). Exception — test mode as part of the domain (simulated posting, a report in test mode).
 - **[P1]** Do not mock via inheritance and `REDEFINITION` (removes `FINAL`, changes `PRIVATE`→`PROTECTED` — changes the class's behavior in production). For legacy — a test seam; for new code — extract the problematic method into a separate class with an interface. <!-- rule: test-no-redefinition-mock -->
-- **[P3]** Do not mock the unnecessary: data/containers without side effects (`transient_log`) use as-is. Do not build test frameworks with "test case IDs" and `CASE` — define the data in place.
+- **[P3]** Do not mock the unnecessary: a data container or a returned table without side effects is used as-is. Do not build test frameworks with "test case IDs" and `CASE` — define the data in place.
 
 ## Test methods
 

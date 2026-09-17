@@ -107,13 +107,16 @@ abap-coding-standards/
         ├── open-sql.md      # Open SQL, performance, buffer, client, JOIN
         ├── ldb.md           # logical databases (LDB-PNP/PNPCE/PCH), HR/OM infotype reads
         ├── security.md      # security, dynamic SQL, authorization, HR infotypes
-        ├── hr-pa.md         # HR PA master data: framework, read path, containers
-        ├── hr-pa-write.md   # HR PA write path: trial/flush, locks, messages
-        ├── hr-pd.md         # HR PD/OM object layer: reads, instances, relations
-        ├── hr-pd-write.md   # HR PD/OM write path: object layer, dispatch BL
-        ├── hr-payroll.md    # HR payroll results, RGDIR, cluster reads
-        ├── classes.md       # classes, signatures, method body, DI
-        ├── testing.md       # ABAP Unit: principles, test classes, doubles, assertions
+        ├── hr-pa.md                # HR PA master data: framework, read path, containers
+        ├── hr-pa-write.md          # HR PA write path: trial/flush, locks, messages
+        ├── hr-pa-write-dispatch.md # HR PA write: NITF vs OITF dispatch, LUW per call
+        ├── hr-pd.md                # HR PD/OM object layer: reads, instances, relations
+        ├── hr-pd-msg-buffer.md     # HR PD/OM messages, buffer/memento, authorization
+        ├── hr-pd-write.md          # HR PD/OM write path: object layer, dispatch BL
+        ├── hr-payroll.md           # HR payroll results, RGDIR, cluster reads
+        ├── classes.md              # classes, method design, DI
+        ├── signatures.md           # method/FM signatures, parameter passing, calls
+        ├── testing.md              # ABAP Unit: principles, test classes, doubles, assertions
         ├── parallel.md      # parallelism, bgRFC/aRFC, background jobs
         ├── cds-amdp.md      # CDS Views, AMDP (SQLScript)
         ├── dynamic-rtti.md  # dynamic programming, RTTI/RTTS

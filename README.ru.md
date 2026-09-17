@@ -107,13 +107,16 @@ abap-coding-standards/
         ├── open-sql.md      # Open SQL, производительность, buffer, client, JOIN
         ├── ldb.md           # логические БД (LDB-PNP/PNPCE/PCH), чтение инфотипов HR/OM
         ├── security.md      # безопасность, динамический SQL, авторизация, инфотипы HR
-        ├── hr-pa.md         # HR PA: мастер-данные, фреймворк, чтение, контейнеры
-        ├── hr-pa-write.md   # HR PA: путь записи — trial/flush, блокировки, сообщения
-        ├── hr-pd.md         # HR PD/OM: объектный слой — чтение, экземпляры, связи
-        ├── hr-pd-write.md   # HR PD/OM: путь записи — объектный слой, dispatch BL
-        ├── hr-payroll.md    # HR: результаты расчёта, RGDIR, чтение кластеров
-        ├── classes.md       # классы, сигнатуры, тело метода, DI
-        ├── testing.md       # ABAP Unit: принципы, тест-классы, двойники, assertion
+        ├── hr-pa.md             # HR PA: мастер-данные, фреймворк, чтение, контейнеры
+        ├── hr-pa-write.md       # HR PA: путь записи — trial/flush, блокировки, сообщения
+        ├── hr-pa-write-dispatch.md # HR PA: путь записи — маппинг NITF vs OITF, LUW на вызов
+        ├── hr-pd.md             # HR PD/OM: объектный слой — чтение, экземпляры, связи
+        ├── hr-pd-msg-buffer.md  # HR PD/OM: сообщения, буфер/memento, авторизация
+        ├── hr-pd-write.md       # HR PD/OM: путь записи — объектный слой, dispatch BL
+        ├── hr-payroll.md        # HR: результаты расчёта, RGDIR, чтение кластеров
+        ├── classes.md           # классы, проектирование методов, DI
+        ├── signatures.md        # сигнатуры методов/FM, передача параметров, вызовы
+        ├── testing.md           # ABAP Unit: принципы, тест-классы, двойники, assertion
         ├── parallel.md      # параллелизм, bgRFC/aRFC, фоновые задания
         ├── cds-amdp.md      # CDS Views, AMDP (SQLScript)
         ├── dynamic-rtti.md  # динамическое программирование, RTTI/RTTS

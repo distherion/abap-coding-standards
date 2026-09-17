@@ -13,6 +13,8 @@
 
 - **[P2]** A `CURR`/`QUAN` field must have a reference field — a `CUKY`/`UNIT` column in the same table/structure.
 
+- **[P3]** Amount in words (printed forms) — use the standard FM `SPELL_AMOUNT`; do not write your own converter (language, currency and the legal form of the text are not yours to reproduce).
+
 - **[P1]** Generating document/record numbers — via number range (`NUMBER_GET_NEXT`), not by hand (`MAX + 1` — a race under parallelism). Gaps in numbers are normal: do not require continuity, do not "fix" holes; the buffered number comes from the range. <!-- rule: number-range-not-max-plus-one -->
 
 
@@ -26,14 +28,12 @@
 
 - **[P1]** `**` returns `f` (binary float, precision loss) when no operand is a decimal floating point type; if an operand is `decfloat16/34` — calc type is `decfloat34`. For an integer power use `ipow( base = ... exp = ... )`. <!-- rule: power-returns-float -->
 
-- **[P1]** Integer overflow (`2147483647 + 1`) → `CX_SY_ARITHMETIC_OVERFLOW` (catchable). <!-- rule: integer-overflow -->
+- **[P1]** Integer overflow (`2147483647 + 1`) → `CX_SY_ARITHMETIC_OVERFLOW` (catchable) — do not rely on wrapping: widen the type (`i` → `int8`/`decfloat34`) or guard the range before the operation. <!-- rule: integer-overflow -->
 
 - **[P1]** Inline `DATA(x) = lv_packed + 1` with a `p` operand gives `p LENGTH 8 DECIMALS 0` — the fraction is lost. For fractions declare the type explicitly: `DATA(x) TYPE p LENGTH 8 DECIMALS 2`. <!-- rule: inline-packed-loses-fraction -->
 
 - **[P1]** `EXACT` on digit loss: `CX_SY_CONVERSION_ROUNDING` (fraction/digits lost), `CX_SY_CONVERSION_OVERFLOW` (overflow) — catch it or guarantee the range. <!-- rule: exact-digit-loss -->
 
-- **[info]** Rounding: `round( val = ... dec = ... [mode = ...] )`, `ceil`/`floor`/`trunc`/`frac`; `nmin`/`nmax` — min/max of arguments; `cl_abap_math` — numeric limits (`min_*`/`max_*` per type, e.g. `cl_abap_math=>min_int4`, `=>max_decfloat34`); the mathematical constants `pi`/`e` are **not** in the 7.50 class — use `acos( -1 )`.
+- **[info]** `cl_abap_math` — numeric limits (`min_*`/`max_*` per type, e.g. `cl_abap_math=>min_int4`, `=>max_decfloat34`); the mathematical constants `pi`/`e` are **not** in the 7.50 class — use `acos( -1 )`. Rounding/min/max functions — see `booleans.md`.
 
 - **[P3]** No `ADD`/`SUBTRACT`/`MULTIPLY`/`DIVIDE` — write an arithmetic assignment `lv_x = lv_x + lv_n`; computed assignments `+=`/`-=`/`*=`/`/=` — only from 7.54 (see `style.md`).
-
-- **[P3]** Amount in words (documents, receipts) — FM `SPELL_AMOUNT` (`amount`/`currency`/`language` → `in_words`); do not assemble the verbal form by hand.

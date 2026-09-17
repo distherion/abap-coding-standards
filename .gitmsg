@@ -1,0 +1,7 @@
+Rework skill: signatures, HR write dispatch/msg-buffer topics; add payroll eval
+
+Content pass from the working copy (round 2): split class/signature rules into
+signatures.md, extract hr-pa-write-dispatch.md and hr-pd-msg-buffer.md, add
+hr_payroll_read eval + fixture, tighten existing rules, and update the
+maintenance doc invariants (object-based citations) and the reference map.
+README (EN/RU) reference trees updated for the new files.

@@ -1,13 +1,14 @@
 # Language and style
 
 > Language, statements, screen code, formatting — and "Version: what is NOT in 7.50".
-> Related: `naming.md` (names), `booleans.md` (conditions, built-ins), `classes.md` (class and method design), `data.md` (types, variables, references), `itab.md` (internal tables), `strings.md` (strings and text), `dynpro.md` (screens).
+> Related: `naming.md` (names), `booleans.md` (conditions, built-ins), `classes.md` (class and method design), `data.md` (types, tables, strings), `dynpro.md` (screens).
 - **[info]** ABAP 7.50, unless stated otherwise.
 - **[P3]** **Line length < 120 characters** — wrap long expressions.
 - **[P3]** Functional constructs: `DATA(...)`, `VALUE #()`, `CORRESPONDING #()`, `NEW`, `COND`, `SWITCH`, `REDUCE`.
 - **[P3]** **No mixing of equivalent spellings** — pick one alternative per construct and use it consistently (comparison operators `=`/`<>` vs `EQ`/`NE`; modern vs legacy statement variants, see the next bullet).
 - **[P3]** **No obsolete statements** — where 7.50 has a modern replacement, use it (ABAPDocu "Obsolete Language Elements", Clean ABAP). Concrete replacements — in this section (`MOVE` → `=`, `CREATE OBJECT` → `NEW`), in `data.md` (`MOVE-CORRESPONDING`, `TABLES`/`NODES`/`WITH HEADER LINE`), `itab.md` (`REFRESH` → `CLEAR`) and `open-sql.md` (unescaped host variables).
 - **[P3]** **Strings/operators**: templates `|...|` and `&&` instead of `CONCATENATE`/`STRING`; `MOVE` → `=`, `TRANSLATE` → `to_upper`/`to_lower`, `CONDENSE` → `condense( )`; `#EC` → pragmas `##` where the check has one (`##NO_TEXT`, `##INCLUDED`, …); keep the legacy `#EC CI_*` pseudo-comment for cross-statement checks that still have no `##` equivalent in 7.50. A `##`-pragma goes to the end of the affected statement (before the period/comma) — when the code changes, reposition it rather than deleting or leaving it orphaned.
+- **[info]** A template `|...|` is an **expression**, and an operand position that requires a data object does not take one: the operands of `CASE`/`WHEN` are such a position — `WHEN |М|.` is a 7.50 syntax error, the fix is the literal (`WHEN 'М'.`), not a `CONV`. Expression positions are unaffected: `ASSIGN COMPONENT |DUM{ lv_num }| OF STRUCTURE ls_tab` is the idiomatic dynamic component name and compiles.
 - **[P3]** String literals — backtick `` `...` `` (type `string`) instead of `'...'` (type `c`, fixed): no redundant CHAR↔STRING conversion and no doubt about the exact type (note `strlen( 'abc   ' ) ≠ strlen( \`abc   \` )`, see `strings.md`).
 - **[P3]** **does not exist:** an `ENUM` in ABAP 7.50. Instead of an enum — constants in an `INTERFACE` (`zif_xxx=>c_value`), used directly, without `INTERFACES zif_xxx` in the class; do not use an enumeration class (a class with `CONSTANTS`) when an interface suffices.
 - **[P2]** Regular expressions — only when simple checks are not enough. Prefer `find`, `CS`/`NS`, `CO`/`CN`, `CA`/`NA`; when a regex is needed — `regex` (POSIX; `pcre` — see "Version" below); build a complex regex from named constants, not a raw literal. Do not compile a regex per call/in a loop — precompile once (`cl_abap_regex`) and reuse; for validation-style match/no-match the dominant idiom is `cl_abap_matcher=>matches( pattern = ... text = ... )` — use it over the raw `regex` built-in; avoid catastrophic backtracking (nested quantifiers like `(a+)+` — a ReDoS on long input); anchor with `^`/`$` when a full match is intended.
@@ -21,6 +22,7 @@
 
 - **[P2]** No business logic in dialog modules (`PBO`/`PAI` of a Dynpro) and event blocks (`INITIALIZATION`, `START-OF-SELECTION`, `END-OF-SELECTION`, `AT SELECTION-SCREEN...`, `AT LINE-SELECTION`, `GET`, `TOP-OF-PAGE`): the module/event reads the screen/selection state and delegates to a class method. Business rules in a class are testable and do not depend on the UI; a dialog module must not compute or write direct. (Screen flow logic — `CHAIN`/`FIELD`/`AT EXIT-COMMAND`/`LOOP AT SCREEN` — see `dynpro.md`.)
 - **[P2]** Selection screens / PAI: labels — from text elements, not literals; defaults — set and reset in `INITIALIZATION`; validation — in `AT SELECTION-SCREEN`/PAI with `MESSAGE TYPE 'E'` before the action proceeds; cross-field checks — a class method, not inline in the module.
+- **[P2]** Do not use SAP memory (SPA/GPA) as a parameter channel: `SET PARAMETER`/`GET PARAMETER`, `PARAMETERS ... MEMORY ID`, `SUBMIT ... WITH ... MEMORY ID`. The value is untyped, its writer is invisible at the call site (SE11/where-used does not show it), and its lifetime is the **user session**, not the call — it leaks into the next transaction of that session and is absent in a background/RFC/parallel run, exactly where the job reads it. Pass the value explicitly (a parameter, an attribute of the instance doing the work, `SUBMIT ... EXPORTING`/`IMPORTING`); keep `MEMORY ID` only for a standard screen that requires it. A value behind `GET PARAMETER` is a hidden external dependency — inject it like any other (`classes.md`, testability).
 - **[P3]** Accessibility of the UI: do not convey information by color alone (color-blind users); icons — a tooltip; table columns — a header; input/output fields — a meaningful label; fields grouped into frames with a meaningful title. Verified device-independent behavior helps people with impairments and is a compliance factor.
 
 # Version: what is NOT in 7.50
@@ -35,17 +37,15 @@ The skill targets ABAP 7.50. These features look like 7.40/7.50 but are unavaila
 - Computed assignments `+=`, `-=`, `*=`, `/=`, `&&=` — from 7.54.
 - `cl_abap_context_info` (`get_user_time_zone( )` etc.) — added later (ABAP Cloud), not in 7.50; in 7.50 use the `sy-*` system fields (`sy-zonlo`/`sy-datlo`/`sy-timlo`).
 - `cl_abap_parallel=>run_inst( )` and `IF_ABAP_PARALLEL` — from 7.54; in 7.50 the serialized `run( )` is the API (see `parallel.md`).
-- SQL built-ins `tstmp_add_seconds( )`/`tstmp_seconds_between( )`/`tstmp_is_valid( )` — not part of the 7.50 built-in functions (added later, HANA context); in 7.50 stay on `cl_abap_tstmp`/`CONVERT TIME STAMP` (see `datetime.md`).
+- SQL built-ins `tstmp_add_seconds( )`/`tstmp_seconds_between( )`/`tstmp_is_valid( )` — not part of the 7.50 built-in functions (added later, HANA context); in 7.50 stay on `cl_abap_tstmp`/`CONVERT TIME STAMP` (see `data.md`).
 - Regular-expression dialect `pcre` (in `regex`/`replace`/`find` conditions) — from 7.55; in 7.50 only POSIX `regex`.
 - XCO (`xco_cp=>...`) and RAP (service definitions/bindings) — not in NetWeaver 7.50 (they ship with ABAP Cloud and on-premise ABAP Platform 2021+/S/4HANA 2021+, see `odata.md`); in a 7.50 target do not propose them.
 
 # Formatting
 
-- **[P3]** One statement per line.
 - **[P1]** No chained operational statements (`CATCH:`, `WHEN:`, `SELECT`/`UPDATE` chains): each chain element is a separate statement — `CATCH: cx_a, cx_b, cx_c.` is `CATCH cx_a. CATCH cx_b. CATCH cx_c.` and only the last block gets the handler code (the first two catch nothing); `UPDATE scustom SET: f1 = ..., f2 = ... WHERE id = ...` is two `UPDATE`s — the first without a `WHERE` changes all rows. Write one statement per line; exceptions into one block — `CATCH cx_a cx_b cx_c.` (ABAPDocu "Chained Statements"). <!-- rule: no-chained-statements -->
 - **[P3]** No chains in up-front declarations (`DATA:`/`TYPES:`/`CONSTANTS:`/`FIELD-SYMBOLS:`): one declaration per statement; a chain is allowed only for deliberately related declarations and for `TYPES: BEGIN OF … END OF` (Clean ABAP: "Do not chain up-front declarations").
 - **[P2]** No chained assignments `a = b = c` — in ABAP this is a **multiple assignment** (the value of `c` is assigned to both `b` and `a`), not a comparison and not an associative chain in the C sense; an inline declaration `DATA(...)` cannot be the destination of a chain. Write separate statements — a chain hides the data flow.
-- **[P3]** Compress: remove extra blank lines, extra assignments.
 - **[P3]** One blank line to separate logical blocks **inside a method**. Between top-level elements of a class the formatter puts 2–3 blank lines (`ENDMETHOD` → `METHOD`, end of `DEFINITION` → `IMPLEMENTATION`) — that is normal, do not compress to one.
 - **[P3]** Close brackets at the end of the line.
 - **[P3]** **Wrap a call chain (`->`) by `)->`**: the closing bracket of the current call and the arrow of the next — together, do not leave `)` at the end of a line separate from `->`.

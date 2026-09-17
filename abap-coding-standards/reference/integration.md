@@ -1,6 +1,6 @@
 # Integration: BDC, memory, BAdI, RFC/HTTP
 
-> Batch input / `CALL TRANSACTION`, the memory areas (ABAP/SAP/Shared), BAdI, BOPF, remote communication (RFC/HTTP), the transport-release gate.
+> Batch input / `CALL TRANSACTION`, the memory areas (ABAP/SAP/Shared), BAdI, BOPF, remote communication (RFC/HTTP).
 > Related: `parallel.md` (bgRFC/aRFC, background jobs), `security.md` (RFC users, command injection), `odata.md`/`odata-v4.md` (services), `errors.md` (the commit a remote call performs, LUW around it).
 
 ## Batch input / CALL TRANSACTION (BDC)
@@ -43,7 +43,3 @@
 - **[P1]** Send/receive — check both: `client->send( EXCEPTIONS OTHERS = 1 )` then `IF sy-subrc <> 0`; same for `receive( )`. `EXCEPTIONS OTHERS = 0` on `send` **disables** error detection (`sy-subrc` 0 on failure) — a silent-failure anti-pattern. Surface via `client->get_last_error( IMPORTING message = lv_msg )`. <!-- rule: http-check-send-receive -->
 - **[P2]** Response status — `response->get_status( IMPORTING code = lv_code )`, then `cl_rest_status_code=>is_error( lv_code )`/`is_success( lv_code )` (or `lv_code BETWEEN 200 AND 299`); do not compare `= 200` (breaks on 201/204). Read the body via `response->get_cdata( )` (string) / `get_data( )` (xstring, then `cl_abap_conv_in_ce` with `i_encoding = 'UTF-8'`).
 - **[P2]** `client->close( )` on the normal path **and** in a `CLEANUP` block; before re-sending on a long-lived client — `refresh_request( )`/`refresh_response( )`. A missing `close` leaks the connection.
-
-## Transport release (review gate)
-
-- **[info]** A transport release can be vetoed from code via the BAdI `CTS_REQUEST_CHECK` (method `CHECK_BEFORE_RELEASE`) — e.g. require the code review / CI result before release, or run ATC/ABAP Unit programmatically at release time.
