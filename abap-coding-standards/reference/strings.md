@@ -11,10 +11,11 @@
 
 - **[P3]** Do not show system fields in the UI (`sy-uzeit`, `sy-datum`, `sy-host`, `sy-sysid`, `sy-dbsys`, …) — technical values; only business data reaches the user.
 
-- **[P2]** No `CONSTANTS` for user-facing text — text constants cannot be translated (SE63). The user receives only translatable sources: a message class or `TEXT-` symbols, OTR — never literals or constants in code (see `errors.md`).
+- **[P2]** No `CONSTANTS` for user-facing text — text constants cannot be translated (SE63), unlike OTR (see `errors.md`).
 
 - **[P3]** Long texts (SAPscript/SO10) — via `READ_TEXT` (`id`/`language`/`name`/`object` → `TABLES lines`) and `SAVE_TEXT`/`INIT_TEXT`/`CREATE_TEXT`; do not read/store raw text tables by hand.
 
+- **[P2]** Reading long texts per key in a loop is the N+1 read — every `READ_TEXT` decompresses the cluster of one text, and the fix that always applies is to hoist the read out of the inner loop (collect the keys, read once). A batch reader exists and is the better answer — `READ_TEXT_TABLE`, one call for a set of keys; its signature is not in the public documentation, so confirm the parameters in SE37 on the system before you use it. What stays forbidden either way is the community workaround (a direct `SELECT` from `STXH`/`STXL` plus `IMPORT tline = ... FROM INTERNAL TABLE`) — hand-reading the text clusters is the rule above.
 
 ## Strings
 

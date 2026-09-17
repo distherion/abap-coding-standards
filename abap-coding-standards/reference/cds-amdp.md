@@ -4,13 +4,12 @@
 
 ## CDS Views (DDL)
 
-- **[info]** A CDS view — a `.ddls` file (DDL Source, ADT; SE11 shows the generated SQL view). One view — one `define view Z_I_... as select from ...`.
-- **[P2]** Mandatory annotation: `@AbapCatalog.sqlViewName` (the SQL name under which the view is visible in Open SQL). `@AbapCatalog.compiler.compareFilter` — controls how join conditions are computed (`true` — the join expression is evaluated once, `false` — a separate join per condition; **default is `false`**), not a mandatory performance option. The technical CDS name — `Z_I_`/`Z_C_`, the SQL view — `Z...` without `/`.
+- **[info]** One view — one `define view ... as select from ...`, in a `.ddls` file (DDL Source, ADT; SE11 shows the generated SQL view).
+- **[P2]** Mandatory annotation: `@AbapCatalog.sqlViewName` (the SQL name under which the view is visible in Open SQL). `@AbapCatalog.compiler.compareFilter` — controls how join conditions are computed (`true` — the join expression is evaluated once, `false` — a separate join per condition; **default is `false`**), not a mandatory performance option.
 - **[P2]** Fields and types — as in DDIC; the key — `key` on fields. Associations (`association [0..1]` / `[1..*]`) instead of JOIN in the main select; unfold via path expressions (`_Assoc.field`) in the CDS DDL (`$expand` is an OData mechanism, not a CDS DDL construct).
-- **[P2]** Do not duplicate logic in view and ABAP: computed fields, filters, aggregates — in CDS where possible; in ABAP — only what CDS lacks.
-- **[P3]** Naming: `Z_I_` — interface/basic view (reusable, pure model), `Z_C_` — consumption view (over `Z_I_`, `@ObjectModel.*`/`@UI.*` annotations for Fiori/OData, no business logic in the select).
+- **[P3]** Naming: `Z_I_` — interface/basic view (reusable, pure model), `Z_C_` — consumption view (over `Z_I_`, `@ObjectModel.*`/`@UI.*` annotations for Fiori/OData, no business logic in the select); the SQL view — `Z...` without `/`.
 - **[P3]** Layering: one **basic view** (`Z_I_`) per DB table / table function; upper-layer views access the basic views, not the DB tables directly — the model's real field names, associations and annotations live in one place, and consumer changes cannot silently bypass them.
-- **[P2]** No business logic in CDS — not only in consumption views: business conditions/rules in the select of a basic/intermediate view couple the model to the current process, break overlying views when they change and are untestable with ABAP Unit. A view stays a data model (row selection, associations); computations and conditions — in ABAP or AMDP, where they are unit-testable.
+- **[P2]** No business logic in CDS, and no logic duplicated between view and ABAP: the view owns row selection, associations, computed fields and aggregates — ABAP keeps only what CDS cannot express. Business conditions and process rules do not belong in a select, not even in a basic/intermediate view: they couple the model to the current process, break overlying views when they change and are untestable with ABAP Unit — those go to ABAP or AMDP (a technical aggregation over a mass of rows in AMDP).
 - **[info]** Input parameters (`with parameters`) — for parameterized reuse.
 
 ## AMDP
@@ -23,5 +22,4 @@
 
 ## Reading CDS in Open SQL
 
-- **[info]** A CDS view (with `@AbapCatalog.sqlViewName`) is read in Open SQL like a normal table: `SELECT ... FROM z_c_view ...`. Client handling — as for a table.
 - **[P2]** Buffer: a CDS entity is not directly buffered in Open SQL; on frequent access, look at a view over tables with their own buffer.

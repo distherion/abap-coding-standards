@@ -2,12 +2,14 @@
 
 Not loaded with `SKILL.md` — read it before editing the skill, and run the checker after.
 
-The checker is **not part of the skill**: it lives next to it in the repo that hosts this one (skill = what a runtime loads and what somebody copies; a copied skill should not carry a checker it cannot run). Run it from the repo of the hosting project after an edit; exit code `0` — the invariants below hold, non-zero — the failure is printed. The checker never edits anything: a self-test mode breaks one invariant at a time in a copy under a temp dir and requires the matching problem back. A check that has silently stopped firing is the one failure a checker cannot report about itself, so every invariant has a fixture; a new invariant is not done until its fixture is in place.
+The checker is **not part of the skill**: it lives next to it in the repo that hosts this one (skill = what a runtime loads and what somebody copies; a copied skill should not carry a checker it cannot run). Commands below are run from the repo root; the checker can be pointed at another copy of the skill with an environment variable.
+
+Exit code `0` — the invariants below hold; non-zero — the failure is printed. The checker never edits anything: a self-test mode breaks one invariant at a time in a copy under a temp dir and requires the matching problem back. A check that has silently stopped firing is the one failure a checker cannot report about itself, so every invariant has a fixture; a new invariant is not done until its fixture is in place.
 
 ## Invariants
 
 1. **Slug** — a stable identifier in a trailing HTML comment (`<!-- rule: some-slug -->`, lower case, hyphenated, unique per file). Only on **P0/P1**: a slug is the promise "this rule names a real defect", so a rule carrying one is never silently downgraded to P2/P3, and a P2/P3/`[info]` rule never carries one. A P0/P1 rule that only points at another file's rule may name that slug in parentheses instead of carrying its own.
-2. **Citation** — rules are cited in a report **point-in-time as `file.md:line`** plus the `rule:`-slug in parentheses. A slug is not an anchor: an HTML comment creates no link target. Between files, refer to a rule by its slug and file, never by copying its text.
+2. **Citation** — rules are cited in a report **point-in-time as `file.md:line`** plus the `rule:`-slug in parentheses. A slug is not an anchor: an HTML comment creates no link target. Between files, refer to a rule by its slug and file, never by copying its text. The `file.md:line` form belongs to **this skill's own files** only: evidence taken from standard code is cited by **object** — class, interface, FM, method, module, table (`cl_hrbas_pd_object_admin` `get_object_instance`, module `SET_PSPAR`) — never by a source file name with a line number (`x.clas.abap:190`, `:236`): that is a position in one export of one release, it moves with every patch level, and it makes the rule unreadable to anyone who does not hold that export.
 3. **One owner per topic.** A rule lives in exactly one file — the topic file owns it. A second file that needs the fact keeps a one-line pointer to the owning slug, not a restatement. Duplication is what the near-duplicate check catches.
 4. **Severity** — assigned per the levels in `SKILL.md` ("Priorities"), by what the defect does, not by how the code looks. A finding in someone else's code keeps its usual severity; only purely stylistic rules are relaxed to P3. Raising/lowering a marker means re-checking the slug (invariant 1) and the intro of the file (invariant 6).
 5. **Negative claims** — a **named** API/parameter/statement that does **not** exist carries the lead-in `**does not exist:**`, so the whole class stays greppable as one list: `rg -n '\*\*does not exist:\*\*' reference/*.md` (the checker prints the count as `"does not exist" claims in reference/`; the legend line in `SKILL.md` is a further match but is not a claim). A negative statement about a *rule* rather than a name (a form that is not the project convention, a pattern that is not required) is ordinary prose and takes no lead-in. These claims are as verifiable as positive ones and are the rules that stop an invented API.
@@ -37,15 +39,16 @@ The skill is a plain `SKILL.md` tree, so it is not tied to Claude Code — but r
 - **Precedence.** Where the runtime has a second instruction mechanism (Cursor rules, `AGENTS.md`, `CLAUDE.md`), it wins over a skill on conflict — the same "project convention wins" the skill states for its own rules.
 - **No harness vocabulary.** `reference/*.md` is read by whichever agent loaded it: no tool names, no runtime switches, no "run the Bash tool" — and the checker rejects Windows-style path separators for the same reason (a backslash-separated path is a dead reference on every runtime that is not Windows).
 
-Activation itself is measured, not assumed: the eval runner sends the queries in `evals/evals.json` (the classes `explicit`, `implicit`, `contextual`, `negative`) and reports whether the session actually called the skill — the negative ones must not.
+Activation itself is measured, not assumed: the eval runner (`--triggers`) sends the queries in `evals/evals.json` (the classes `explicit`, `implicit`, `contextual`, `negative`) and reports whether the session actually called the skill — the negative ones must not.
 
-What the skill produces once it is active is measured the same way: each scenario in `evals/evals.json` runs twice — with the skill and against an empty config directory plus an empty `HOME` — and a scenario counts as evidence only if the baseline fails its checks. One of the four is the **P0 band** (a dynamic `WHERE` built from input, a `CALL TRANSACTION` without an authorization check): it is the band a review of ordinary code never reaches, so it is the one least likely to appear without the rules.
+What the skill produces once it is active is measured the same way: the eval runner runs each scenario in `evals/evals.json` twice — with the skill and against an empty config directory plus an empty `HOME` — and a scenario counts as evidence only if the baseline fails its checks. One of the five is the **P0 band** (a dynamic `WHERE` built from input, a `CALL TRANSACTION` without an authorization check): it is the band a review of ordinary code never reaches, so it is the one least likely to appear without the rules; `hr-payroll-read` covers the HR block, the largest part of the rule body.
 
 ## What the checker does not do
 
 - **Does not verify the facts.** Names and signatures are checked by hand against a definition (see "Context — don't invent" in `SKILL.md`): an abapGit export of a standard package, `SAP Help`, a note. A rule lifted from memory is a rule that will be wrong.
 - **Does not decide severity** — only reports which files have no P0/P1 rule at all, and which files are more than a third `[info]`. A topic with no P0/P1 is either misclassified or not about findings; a file whose rules are mostly `[info]` has stopped producing findings — an `[info]` never fires on review, so a fact there with a defect consequence is a rule that will never be reported. Both notes are a prompt to look, not a defect.
 - **Does not judge wording.** Wording is edited by hand, per the style of the neighbouring file.
+- **Does not keep landscape-specific evidence.** A call-site count, a line number of a locally exported package or "our system does it this way" is true of one landscape, not of ABAP: it ages, and it ties the skill to one project. The rule keeps the general form (`the classic `RH_*` FMs bypass the buffer`), the review keeps the measurement ("eleven call sites in this package"). A number in a rule is the strongest argument it carries and the first thing to rot. The `--names` run of the checker is the other half of the same habit — a name that no longer occurs anywhere is a rule to re-verify, not a rule to trust.
 
 ## Optional: are the names used anywhere?
 
@@ -53,6 +56,7 @@ With a corpus of real code to compare against, the names the skill recommends ca
 
 ```
 rg -o --no-filename -i '[A-Za-z0-9_/]{4,}' <corpus>/src | sort -u > /tmp/corpus.txt
+rg -o --no-filename -i '[A-Za-z0-9_/]{4,}' <other_corpus>/src | sort -u >> /tmp/corpus.txt
 ```
 
 The report has two lists: names absent from the corpus (a to-verify list against `SAP Help`), and names absent but sitting inside a `**does not exist:**` claim (expected — that claim says they are absent). Absent is **not** wrong: the corpus covers only the packages it was exported from. Every absent name needs a decision — verified against a definition, or the rule is dropped. A name nobody verified is the next invented API.

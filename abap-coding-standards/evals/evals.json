@@ -1,6 +1,6 @@
 {
   "skill": "abap-coding-standards",
-  "notes": "Four activation evals: each one fails when the skill is off and passes when it is on (measured: all three differ between the arms). The checks are deterministic regexes over the answer text — no judge model — so a run costs one call per arm and is reproducible. The queries name the skill on purpose: an unnamed query measures whether the model reaches for a skill, not whether this skill is any good. The baseline arm runs with an empty config directory and an empty HOME — with a real HOME the session finds the skill's files on disk through the user's CLAUDE.md and answers from them without ever loading the skill. A P0/security scenario is included on purpose: `[P0]` is the band a review of ordinary code never reaches, so it is the one least likely to be produced without the rules.",
+  "notes": "Five activation evals: each one must fail its baseline arm and pass with the skill on — a scenario that passes in both arms is not evidence and is dropped, and a single check may pass in both as long as at least one fails. Separation is a property of the (scenario, model) pair, not of the scenario: name the model with `--model` or the run is not reproducible. Measured 2026-09-17: on the session's default model three of the five separate (`select-in-loop`, `authz-injection`, `hr-payroll-read`); `invented-api` missed its with-arm checks there and `broken-luw` passed both arms, and re-measured on `sonnet` both separate as intended. The checks are deterministic regexes over the answer text — no judge model — so a run costs one call per arm. The queries name the skill on purpose: an unnamed query measures whether the model reaches for a skill, not whether this skill is any good. The baseline arm runs with an empty config directory and an empty HOME — with a real HOME the session finds the skill's files on disk through the user's CLAUDE.md and answers from them without ever loading the skill (the runner lives outside the skill folder). A P0/security scenario is included on purpose: `[P0]` is the band a review of ordinary code never reaches, so it is the one least likely to be produced without the rules (the P0 fixtures live outside the skill folder); `hr-payroll-read` covers the HR block, which is the largest part of the rule body and had no scenario of its own.",
   "evals": [
     {
       "id": "invented-api",
@@ -128,6 +128,41 @@
         {
           "label": "cites file:line",
           "regex": "[\\w./-]+\\.abap:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "hr-payroll-read",
+      "query": "Отревью hr_payroll_read.abap. Найди дефекты. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/hr_payroll_read.abap"
+      ],
+      "expected_behavior": [
+        "Rates the hand IMPORT of the PCL2 cluster (ur) as P1 (hr-payroll.md, payroll-no-hand-cluster): the components are mapped by memory layout, so a country-structure change lands the values in the wrong components with no error, and the read skips the cluster-version/archive handling.",
+        "Names the read that must replace it: PYXX_READ_PAYROLL_RESULT (with the seqnr of the chosen RGDIR row).",
+        "Flags the wage-type text read: a direct SELECT from t512t per row instead of the standard text FM HR_GET_LGART_TEXT / cl_hr_t512w, and inside the LOOP (P2, hr-payroll.md).",
+        "Cites the finding by file and line, and the rule by reference file and line (hr-payroll.md:8 / hr-payroll.md:11) — the artifact a session without the skill does not produce."
+      ],
+      "checks": [
+        {
+          "label": "rates the hand cluster read P1",
+          "regex": "(?i)\\bP1\\b"
+        },
+        {
+          "label": "names the standard read",
+          "regex": "PYXX_READ_PAYROLL_RESULT"
+        },
+        {
+          "label": "names the wage-type text path",
+          "regex": "(?i)T512T|HR_GET_LGART_TEXT|cl_hr_t512w"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        },
+        {
+          "label": "cites a skill reference file",
+          "regex": "[\\w-]+\\.md:\\d+"
         }
       ]
     }
