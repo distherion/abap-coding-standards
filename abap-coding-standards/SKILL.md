@@ -63,6 +63,7 @@ Always look for logic errors and potential problems, even those not in the rules
 ## Automated checks
 - **[behavior]** Run static analyzers as part of the review — they catch their defined set (naming, syntax, anti-patterns); logic, races, LUW and the rest still need the manual pass. In-system — ATC (Code Inspector); on abapGit code — abaplint (`abaplint.json`), code pal for ABAP, abapOpenChecks, SonarSource ABAP (CI without an ABAP system). Before writing your own utility, check the open-source ecosystem — it probably exists.
 - **[behavior]** A green abaplint run is not "it activates": it checks neither the type of a formal parameter, nor `IS SUPPLIED` on a mandatory one, nor a variable that was never declared — only the syntax check in the system catches those, and an FM call whose actual does not match the interface ends in a runtime error (`signatures.md`, `fm-param-type-exact`). Say so when handing code over.
+- **[behavior]** Outside an ABAP system abaplint resolves names only from the config's dependencies (the abapGit exports of the packages the code calls); without them every unresolved class, FM, field or table is a finding about the **sandbox**, not the code. The checks needing no dependency graph (naming, syntax, structure, anti-patterns) stand; the `Unknown ...` family is verified against a definition or dropped, and the raw count of such a run is not a review result. Export artifacts read as findings too: a fragment of a larger object (`.g4bs.xml`), a valid statement the parser does not model.
 
 ## Local editing of `.abap` files
 
@@ -76,7 +77,7 @@ Open only the file for the topic at hand:
 
 | When the task touches… | Open |
 |------------------------|------|
-| Errors, exceptions, LUW/COMMIT, locks, update task, logging | `errors.md`, `logging.md` |
+| Errors, exceptions, LUW/COMMIT, locks, update task, logging | `errors.md`, `luw.md`, `logging.md` |
 | Money and counters, dates and times, strings and texts | `numbers.md`, `datetime.md`, `strings.md` |
 | Types, variables, references, structures | `data.md` |
 | Tables, database access, table keys | `itab.md`, `open-sql.md`, `ldb.md`, `ddic.md` |
@@ -91,4 +92,4 @@ Open only the file for the topic at hand:
 There is no rule for these topics — do not improvise from the rulebook, say what is missing and verify against SAP documentation ("Finding sources"): output forms (Smart Forms, SAPscript, Adobe Forms), IDoc/ALE (partner profiles, `IDOC_INBOUND_*`, HRMD_A), classic user exits (CMOD/SMOD — BAdI **is** covered in `integration.md`), Web Dynpro, Fiori/SAPUI5 frontend, BW/analytics.
 
 ## Editing this skill
-`SKILL.md` is always in context; the rules live in `reference/*.md`. Before editing, read `MAINTENANCE.md` (the invariants). The checker is not shipped with the skill — it sits next to it in the repo that hosts it: after an edit, run it (slugs, pointers, reference map, near-duplicates) and its self-test, which proves each of those checks still fires.
+`SKILL.md` is always in context; the rules live in `reference/*.md`. Before editing, read `MAINTENANCE.md` (the invariants) and run the skill's checks after an edit (slugs, pointers, reference map, near-duplicates) plus their self-test, which proves each of those checks still fires.

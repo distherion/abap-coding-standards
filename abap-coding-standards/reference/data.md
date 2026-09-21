@@ -23,6 +23,8 @@
 
 - **[P3]** Initialization with a named type: `DATA(lv_x) = VALUE ty_type( ).` instead of `DATA lv_x TYPE ty_type.`; anonymous types (`TABLE OF … WITH KEY`, `WITH DEFAULT KEY`) cannot be declared inline — use `TYPE` there.
 
+- **[P3]** Merge a declaration with its single assignment: `DATA(x) = <expr>.` at the first use — `DATA(ls_key) = CORRESPONDING hripkey( ls_src ).`, `DATA(lt_remaining) = ct_departments.` — instead of `DATA x TYPE t.` at the top of the method plus one assignment below, and the same inside the only branch that uses the variable. The operand gives the inline type, so a `#` may stand there only when the expression itself carries one — `VALUE #( itab[ key ] OPTIONAL )` (a single table expression), `REDUCE #( INIT x = VALUE t( ) … )` (from the first `INIT` declaration), `COND`/`SWITCH #( )` (from their operands), `REF #( dobj )`; a `#` that has to take the type from the target must be spelled out instead — `DATA(ls_key) = CORRESPONDING #( ls_src ).` is a syntax error, and so is an inline `VALUE #( comp = … )` — SAP's own comment on the same pattern: "the type cannot be retrieved from the context. Therefore, an explicit specification of the type is required" (SAP ABAP cheat sheet, the `VALUE` section, above `DATA(struc2) = VALUE struc_type( a = 4 b = 'ddd' ).`). Two cases keep the upfront form: a name assigned in more than one branch, and one whose assignment sits on a path that may not run — the branch rules above.
+
 - **[P3]** No obsolete short declaration forms: `DATA lv_x.` is implicitly `c LENGTH 1`, `TYPES: t1, t2 TYPE p.` — implicitly `c`/standard lengths. Specify `TYPE`/`LENGTH`/`DECIMALS` explicitly (ABAPDocu "TYPES - implicit", obsolete language elements).
 
 
