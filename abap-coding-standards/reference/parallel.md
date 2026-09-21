@@ -1,7 +1,7 @@
 # Parallelism and background processes
 
 > Parallel tasks, background jobs, bgRFC/aRFC — and what does not cross a task boundary (state, LUW, locks).
-> Related: `errors.md` (LUW, the update task, `ENQUEUE`), `integration.md` (RFC/HTTP, BAdI, BOPF), `open-sql.md` (the database work that makes parallelism worth it).
+> Related: `errors.md` (LUW, `ENQUEUE`), `luw.md` (the update task), `integration.md` (RFC/HTTP, BAdI, BOPF), `open-sql.md` (the database work that makes parallelism worth it).
 
 - **[P2]** Parallel — only for data-independent chunks: mass load/calculation where rows do not affect each other. Order is not guaranteed.
 - **[P1]** State does not cross the task boundary: each parallel task (RFC task, background job) — its own work process/session. ABAP memory (`EXPORT/IMPORT ... MEMORY ID`), `SET/GET PARAMETER`, class statics — NOT visible to the caller in parallel (see "Classes": static ≠ request state). Session state — only via call parameters/result. <!-- rule: state-not-cross-task -->

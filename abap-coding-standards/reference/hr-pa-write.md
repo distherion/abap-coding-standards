@@ -1,6 +1,6 @@
 # HR — PA write path
 
-> Release: the 7.50 API of the PA framework (`cl_hrpa_*`). The ordinary entry is the dispatcher — `hr-pa-write-dispatch.md`; the read side and the framework entry points — `hr-pa.md`.
+> Release: the 7.50 API of the PA framework (`cl_hrpa_*`). The ordinary entry is the dispatcher — `hr-pa-write-dispatch.md`; the read side, the framework entry points and the customizing reads (`cl_hr_t*` — also the ones a write needs) — `hr-pa.md`.
 > Writing PA master data: trial/flush, containers, locks, messages, and everything a write pulls in (time constraints, OM sync, retrocalc, BAdI checks) — plus, in the last section, the APIs for a BL you drive yourself.
 
 ## Write path — trial and container

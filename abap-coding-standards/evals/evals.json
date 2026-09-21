@@ -1,6 +1,6 @@
 {
   "skill": "abap-coding-standards",
-  "notes": "Five activation evals: each one must fail its baseline arm and pass with the skill on — a scenario that passes in both arms is not evidence and is dropped, and a single check may pass in both as long as at least one fails. Separation is a property of the (scenario, model) pair, not of the scenario: name the model with `--model` or the run is not reproducible. Measured 2026-09-17: on the session's default model three of the five separate (`select-in-loop`, `authz-injection`, `hr-payroll-read`); `invented-api` missed its with-arm checks there and `broken-luw` passed both arms, and re-measured on `sonnet` both separate as intended. The checks are deterministic regexes over the answer text — no judge model — so a run costs one call per arm. The queries name the skill on purpose: an unnamed query measures whether the model reaches for a skill, not whether this skill is any good. The baseline arm runs with an empty config directory and an empty HOME — with a real HOME the session finds the skill's files on disk through the user's CLAUDE.md and answers from them without ever loading the skill (the runner lives outside the skill folder). A P0/security scenario is included on purpose: `[P0]` is the band a review of ordinary code never reaches, so it is the one least likely to be produced without the rules (the P0 fixtures live outside the skill folder); `hr-payroll-read` covers the HR block, which is the largest part of the rule body and had no scenario of its own.",
+  "notes": "Twelve activation evals (five from 2026-09-17, seven added 2026-09-18): each one must fail its baseline arm and pass with the skill on — a scenario that passes in both arms is not evidence and is dropped, and a single check may pass in both as long as at least one fails. Separation is a property of the (scenario, model) pair, not of the scenario: name the model with `--model` or the run is not reproducible. Measured 2026-09-17: on the session's default model three of the five separate (`select-in-loop`, `authz-injection`, `hr-payroll-read`); `invented-api` missed its with-arm checks there and `broken-luw` passed both arms, and re-measured on `sonnet` both separate as intended. Adds to the 2026-09-18 group (`unbound-ref`, `itab-index-zero`, `lock-no-dequeue`, `formal-param-type`, `pd-relations-empty-on-error`, `sys-field-in-key`, `hr-write-customizing-read`): they cover the rules that carry no other scenario — a reference dump, an off-by-one index, a leaked enqueue, the formal-parameter type check, the PD relation read (the HR block's second half alongside `hr-payroll-read`), the system field in a persisted key, and the HR customizing read on the write path (`hr-pa.md:30` — the rule a live session on 2026-09-18 filed under the read side and skipped: a lone `SELECT SINGLE` with no loop in sight, so the buffer and the table key went missing). Measured 2026-09-18 with no `--model` (the session default): all seven pass with the skill on and fail the baseline — the separating checks are the level (`P1`/`P2`), the rule's slug or `file.md:line`, and for `lock-no-dequeue` the branch that leaks the lock; `hr-write-customizing-read` is the one scenario whose baseline misses every check. Dropped that day: `inline-hash-type`, a writing scenario for the corrected `#`-in-an-inline-declaration rule — measured in both arms it separated nothing (the baseline typed the target explicitly too), and its citation check failed the with-arm, so it scored the formulation, not the defect. Expect the citation check to be the flaky one in a writing scenario, where the artifact is code and not a report (same check in `invented-api`). The checks are deterministic regexes over the answer text — no judge model — so a run costs one call per arm. The queries name the skill on purpose: an unnamed query measures whether the model reaches for a skill, not whether this skill is any good. The baseline arm runs with an empty config directory and an empty HOME — with a real HOME the session finds the skill's files on disk through the user's CLAUDE.md and answers from them without ever loading the skill (the runner lives outside the skill folder). A P0/security scenario is included on purpose: `[P0]` is the band a review of ordinary code never reaches, so it is the one least likely to be produced without the rules (the P0 fixtures live in the skill's `evals/fixtures/`); `hr-payroll-read` covers the HR block, which is the largest part of the rule body and had no scenario of its own",
   "evals": [
     {
       "id": "invented-api",
@@ -163,6 +163,248 @@
         {
           "label": "cites a skill reference file",
           "regex": "[\\w-]+\\.md:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "unbound-ref",
+      "query": "Отревью unbound_ref.abap. Найди дефекты. Только отчёт, без переписывания кода. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/unbound_ref.abap"
+      ],
+      "expected_behavior": [
+        "Rates the dereference of lo_manager as P1: the reference is filled only inside the IF, so with an empty iv_manager_pernr the next call dumps CX_SY_REF_IS_INITIAL — a crash, not \"no manager\".",
+        "Names the guard the fix needs (IS BOUND before the dereference, or a value in every path) rather than a reformatting of the IF.",
+        "Cites the finding by file and line and the rule by reference file and line (data.md:33, slug ref-unbound-check) — the artifact a session without the skill does not produce.",
+        "Does not spend the report on the WRITE statement or the missing pretty-printing."
+      ],
+      "checks": [
+        {
+          "label": "rates the dump P1",
+          "regex": "(?i)\\bP1\\b"
+        },
+        {
+          "label": "names the runtime error",
+          "regex": "CX_SY_REF_IS_INITIAL|REF_IS_INITIAL|unbound|несвязан"
+        },
+        {
+          "label": "names the guard",
+          "regex": "IS BOUND"
+        },
+        {
+          "label": "cites the rule's slug",
+          "regex": "ref-unbound-check"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "itab-index-zero",
+      "query": "Отревью itab_index_zero.abap. Найди дефекты. Только отчёт, без переписывания кода. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/itab_index_zero.abap"
+      ],
+      "expected_behavior": [
+        "Rates both the table expression lt_pernr[ 0 ] and READ TABLE ... INDEX 0 as P1: an ABAP table index is 1-based, so there is no such row — the table expression dumps, the READ returns sy-subrc <> 0 with an untouched target.",
+        "States the fix as indexing from 1 (or a different read that expresses the intent), not as a bounds check on the loop.",
+        "Cites the rule by reference file and line (itab.md:16, slug itab-index-1-based) and the finding by file and line.",
+        "Does not rate the SELECT or the lines( ) call as the defect."
+      ],
+      "checks": [
+        {
+          "label": "rates it P1",
+          "regex": "(?i)\\bP1\\b"
+        },
+        {
+          "label": "names the 1-based index",
+          "regex": "(?i)1-based|1-базов|нумераци\\w* (начинается )?с 1|перв\\w+ строк\\w+ это 1"
+        },
+        {
+          "label": "cites the rule's slug",
+          "regex": "itab-index-1-based"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "lock-no-dequeue",
+      "query": "Отревью lock_no_dequeue.abap. Найди дефекты. Только отчёт, без переписывания кода. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/lock_no_dequeue.abap"
+      ],
+      "expected_behavior": [
+        "Names the real defect: the lock survives the two early exits (raise_busy on a foreign lock, the RETURN on a failed check) — DEQUEUE runs only on the happy path, so the object stays locked for the session and the next write reports a foreign lock.",
+        "Says where the DEQUEUE belongs: every branch including CLEANUP / a TRY-CATCH, not just after the UPDATE.",
+        "Cites the rule (errors.md:21) and the finding by file and line.",
+        "Does not confuse the enqueue server lock with a database lock, and does not report the UPDATE statement form as the finding."
+      ],
+      "checks": [
+        {
+          "label": "rates the leaked lock P2",
+          "regex": "(?i)\\bP2\\b"
+        },
+        {
+          "label": "names the missing DEQUEUE",
+          "regex": "(?i)dequeue"
+        },
+        {
+          "label": "names the leaking branch",
+          "regex": "(?i)RETURN|CLEANUP|ветк|исключени|ошибк"
+        },
+        {
+          "label": "cites a skill reference file",
+          "regex": "[\\w-]+\\.md:\\d+"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "formal-param-type",
+      "query": "Отревью formal_param_type.abap. Найди дефекты. Только отчёт, без переписывания кода. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/formal_param_type.abap"
+      ],
+      "expected_behavior": [
+        "Rates the call as P1 and names the reason: a formal parameter is checked for type compatibility, not convertibility — a string actual into iv_begda TYPE dats is a syntax error, not a silent conversion as it would be in an operand position.",
+        "Reads the type from the callee's declaration (the class definition in the same file), not from the call site — and checks both parameters, not just the first.",
+        "Names the fix: convert into a local of the target type at the call (or CONV dats( ... ) where the formal accepts it), or a generic character formal if the callers genuinely differ.",
+        "Cites the rule (signatures.md:22, slug formal-param-type-subset) and the finding by file and line."
+      ],
+      "checks": [
+        {
+          "label": "rates it P1",
+          "regex": "(?i)\\bP1\\b"
+        },
+        {
+          "label": "names the incompatibility",
+          "regex": "(?i)несовмест|incompatible|синтаксическ\\w* ошибк"
+        },
+        {
+          "label": "names a conversion at the call",
+          "regex": "(?i)CONV|локальн\\w+ переменн|local .*(target|dats)"
+        },
+        {
+          "label": "cites the rule's slug",
+          "regex": "formal-param-type-subset"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "pd-relations-empty-on-error",
+      "query": "Отревью pd_relations_empty_on_error.abap. Найди дефекты. Только отчёт, без переписывания кода. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/pd_relations_empty_on_error.abap"
+      ],
+      "expected_behavior": [
+        "Rates the ignored is_ok as P1: on the object layer an empty relations table is \"no relation\" only with is_ok = abap_true — lv_ok is read and never used, so a failed read (an authorization denial arrives exactly this way) is taken for \"no relation\".",
+        "Names the consequence: the branch then creates the relation in a failure case, and the message list that carries the reason is discarded.",
+        "Names the fix: read is_ok and the message list, hand the failure up (RETURNING error object or own zcx_*), and only treat is_ok = abap_true with an empty table as \"nothing there\".",
+        "Cites the rule (hr-pd.md:11, slug pd-relations-empty-on-error) and the finding by file and line."
+      ],
+      "checks": [
+        {
+          "label": "rates it P1",
+          "regex": "(?i)\\bP1\\b"
+        },
+        {
+          "label": "names the ignored is_ok",
+          "regex": "is_ok"
+        },
+        {
+          "label": "names the authorization denial",
+          "regex": "(?i)авторизац|authorization|missing_auth|отказ"
+        },
+        {
+          "label": "cites the rule's slug",
+          "regex": "pd-relations-empty-on-error"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "sys-field-in-key",
+      "query": "Отревью sys_field_in_key.abap. Найди дефекты. Только отчёт, без переписывания кода. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/sys_field_in_key.abap"
+      ],
+      "expected_behavior": [
+        "Rates the journal key built from sy-sysid (and sy-datum) as P2: the key is persisted business data, and the system field is a different value in QA and PRD — the same business case gets a different key per landscape, and a comparison or a re-run silently differs.",
+        "Keeps the legitimate uses apart: sy-datum/sy-uname as a log column is not the defect; the defect is the system field inside the key.",
+        "Names the fix: a key from the input (pernr and a number range / the source message id), not from the executing system.",
+        "Cites the rule (data.md:22) and the finding by file and line."
+      ],
+      "checks": [
+        {
+          "label": "rates it P2",
+          "regex": "(?i)\\bP2\\b"
+        },
+        {
+          "label": "names the system field in the key",
+          "regex": "sy-sysid"
+        },
+        {
+          "label": "names why it breaks",
+          "regex": "(?i)систем|system|QA|PRD|ландшафт|переносим|воспроизводим"
+        },
+        {
+          "label": "cites data.md",
+          "regex": "data\\.md:\\d+"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
+        }
+      ]
+    },
+    {
+      "id": "hr-write-customizing-read",
+      "query": "Отревью hr_write_customizing_read.abap. Найди дефекты. Только отчёт, без переписывания кода. Используй скилл abap-coding-standards.",
+      "files": [
+        "evals/fixtures/hr_write_customizing_read.abap"
+      ],
+      "expected_behavior": [
+        "Flags the hand-written customizing read — SELECT SINGLE from T500P — as P2 (hr-pa.md:30): HR customizing goes through the buffered cl_hr_t* family (one class per table, read( <key fields> )), here cl_hr_t500p=>read( persa )-molga — or cl_hrpa_molga=>read_molga_by_persa( ).",
+        "Does not excuse the read because it is not inside a LOOP: the rule is about the read, not the loop — a lone SELECT SINGLE and a read the write path needs are the same defect, and the class carries the buffer and the table key.",
+        "Flags the direct SELECT from pa0001 (hr-pa.md:9): PA master data is read through the class framework (cl_hrpa_masterdata_factory=>get_read_infotype( )->read_single( ... ) / if_hrpa_read_infotype), not a hand-written SELECT with hand-made begda/endda ranges.",
+        "Keeps the feature call itself out of the findings — cl_hrpa_feature=>get_value / HR_FEATURE_BACKFIELD with a PME01 is the sanctioned path (hr-pa.md:19); inventing another API for it is a false positive.",
+        "Cites the finding by file and line of the fixture, and the rule by reference file and line (hr-pa.md:30 / hr-pa.md:9)."
+      ],
+      "checks": [
+        {
+          "label": "names the buffered customizing reader",
+          "regex": "cl_hr_t\\w+|cl_hrpa_molga"
+        },
+        {
+          "label": "names the reader for the personnel area / country grouping",
+          "regex": "(?i)cl_hr_t500p|cl_hrpa_molga|read_molga_by_persa"
+        },
+        {
+          "label": "names the PA master-data read path",
+          "regex": "(?i)cl_hrpa_masterdata_factory|if_hrpa_read_infotype|read_single"
+        },
+        {
+          "label": "cites an HR reference file",
+          "regex": "hr-pa(-write)?\\.md:\\d+"
+        },
+        {
+          "label": "cites file:line",
+          "regex": "[\\w./-]+\\.abap:\\d+"
         }
       ]
     }
