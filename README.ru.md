@@ -94,7 +94,6 @@ abap-coding-standards/
 └── abap-coding-standards/             # сам навык — на английском
     ├── SKILL.md         # точка входа и процесс проверки
     ├── MAINTENANCE.md   # как поддерживается навык (инварианты, рантаймы)
-    ├── evals/           # эвалы активации и проверки + ABAP-фикстуры
     └── reference/       # файлы по темам, лениво подгружаются
         ├── errors.md        # обработка ошибок, исключения, LUW/ENQUEUE/COMMIT
         ├── luw.md           # LUW: update task, V1/V2, SET UPDATE TASK LOCAL

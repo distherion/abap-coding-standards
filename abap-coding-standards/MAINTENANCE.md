@@ -41,10 +41,6 @@ The skill is a plain `SKILL.md` tree, so it is not tied to Claude Code — but r
 - **Precedence.** Where the runtime has a second instruction mechanism (Cursor rules, `AGENTS.md`, `CLAUDE.md`), it wins over a skill on conflict — the same "project convention wins" the skill states for its own rules.
 - **No harness vocabulary.** `reference/*.md` is read by whichever agent loaded it: no tool names, no runtime switches, no "run the Bash tool" — and the checker rejects Windows-style path separators for the same reason (a backslash-separated path is a dead reference on every runtime that is not Windows).
 
-Activation itself is measured, not assumed: the evals runner sends the queries in `evals/evals.json` (the classes `explicit`, `implicit`, `contextual`, `negative`) in a `--triggers` mode and reports whether the session actually called the skill — the negative ones must not.
-
-What the skill produces once it is active is measured the same way: each scenario in `evals/evals.json` is run twice — with the skill and against an empty config directory plus an empty `HOME` — and a scenario counts as evidence only if the baseline fails its checks. One of the four is the **P0 band** (a dynamic `WHERE` built from input, a `CALL TRANSACTION` without an authorization check): it is the band a review of ordinary code never reaches, so it is the one least likely to appear without the rules.
-
 ## What the checker does not do
 
 - **Does not verify the facts.** Names and signatures are checked by hand against a definition (see "Context — don't invent" in `SKILL.md`): an abapGit export of a standard package, `SAP Help`, a note. A rule lifted from memory is a rule that will be wrong.

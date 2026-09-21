@@ -94,7 +94,6 @@ abap-coding-standards/
 └── abap-coding-standards/             # the skill, in English
     ├── SKILL.md         # entry point and review workflow
     ├── MAINTENANCE.md   # how the skill is maintained (invariants, runtimes)
-    ├── evals/           # activation and review evals + ABAP fixtures
     └── reference/       # topic files, loaded on demand
         ├── errors.md        # error handling, exceptions, LUW/ENQUEUE/COMMIT
         ├── luw.md           # LUW: update task, V1/V2, SET UPDATE TASK LOCAL
