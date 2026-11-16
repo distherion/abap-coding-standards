@@ -140,6 +140,10 @@ The rules are distilled from the sources below. Links are kept here only — the
 - [Clean ABAP — SAP styleguides](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md) · [ABAP Code Reviews — SAP styleguides](https://github.com/SAP/styleguides/blob/main/abap-code-review/ABAPCodeReview.md)
 - [SAP Help Portal](https://help.sap.com) · [ABAP Keyword Documentation 7.50 (ABAPDocu)](https://help.sap.com/doc/abapdocu_750_index_htm/7.50/en-US/index.htm) · [SAP Support Notes / Knowledge base](https://support.sap.com/en/my-support/knowledge-base.html)
 
+**Specifications**
+
+- [OData CSDL XML 4.01 (OASIS)](https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/odata-csdl-xml-v4.01-os.html) — entity-set vs navigation-property name scopes (`odata-v4.md`)
+
 **Static analysis & tooling**
 
 - [SAP/code-pal-for-abap](https://github.com/SAP/code-pal-for-abap) — Clean ABAP checks in SCI/ATC

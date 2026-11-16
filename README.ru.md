@@ -140,6 +140,10 @@ abap-coding-standards/
 - [Clean ABAP — SAP styleguides](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md) · [ABAP Code Reviews — SAP styleguides](https://github.com/SAP/styleguides/blob/main/abap-code-review/ABAPCodeReview.md)
 - [SAP Help Portal](https://help.sap.com) · [Документация ABAP Keyword 7.50 (ABAPDocu)](https://help.sap.com/doc/abapdocu_750_index_htm/7.50/en-US/index.htm) · [SAP Support Notes / База знаний](https://support.sap.com/en/my-support/knowledge-base.html)
 
+**Спецификации**
+
+- [OData CSDL XML 4.01 (OASIS)](https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/odata-csdl-xml-v4.01-os.html) — области имён entity set и navigation property (`odata-v4.md`)
+
 **Статический анализ и инструменты**
 
 - [SAP/code-pal-for-abap](https://github.com/SAP/code-pal-for-abap) — проверки Clean ABAP в SCI/ATC

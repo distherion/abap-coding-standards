@@ -1,6 +1,6 @@
 # Maintaining this skill
 
-Not loaded with `SKILL.md` — read it before editing the skill, and run the checker after.
+Not loaded with `SKILL.md` — read it before editing the skill, and run the checker after when you have it.
 
 The checker is **not part of the skill**: it lives next to it in the repo that hosts this one (skill = what a runtime loads and what somebody copies; a copied skill should not carry a checker it cannot run). Commands below are run from the repo root.
 
@@ -25,7 +25,7 @@ Exit code `0` — the invariants below hold; non-zero — the failure is printed
 
 The skill is a plain `SKILL.md` tree, so it is not tied to Claude Code — but runtimes differ in what they check and how they load, and the differences matter before an edit:
 
-- **Validation.** The spec's reference validator is `skills-ref`, installed here at `~/.paiw/tools/personal/skills-ref/node_modules/.bin/skills-ref`:
+- **Validation.** The spec's reference validator is `skills-ref` (install it in your own environment):
 
   ```
   skills-ref validate <skill-dir>        # "Valid skill: <dir>" + exit 0, or the failures + exit 1
@@ -33,8 +33,8 @@ The skill is a plain `SKILL.md` tree, so it is not tied to Claude Code — but r
   skills-ref to-prompt <skill-dir>       # the `<available_skills>` entry a runtime builds from the description
   ```
 
-  It is **stricter than `claude plugin validate`**, which passes frontmatter this skill must not carry — measured: adding `model: opus` gives `Unexpected fields in frontmatter: model. Only allowed-tools, compatibility, description, license, metadata, name are allowed.`, and a `name` that does not match its directory gives both the character rule and the directory mismatch. The npm build (0.1.5) is what is installed — the checking logic is the same, the CLI is the same three commands. `skillcheck` adds a client-extension registry and 36 rules on top of it. Installing either is a deliberate step: from a source you have read, on purpose — not as part of a routine run.
-- **The catalog entry is the description and nothing else.** `skills-ref to-prompt` prints exactly what every runtime puts in front of the model, which is the cheapest way to see what the skill is competing with among the other 78.
+  It is **stricter than `claude plugin validate`**, which passes frontmatter this skill must not carry — measured: adding `model: opus` gives `Unexpected fields in frontmatter: model. Only allowed-tools, compatibility, description, license, metadata, name are allowed.`, and a `name` that does not match its directory gives both the character rule and the directory mismatch. The npm build (0.1.5) is the reference build — the checking logic is the same, the CLI is the same three commands. `skillcheck` adds a client-extension registry and 36 rules on top of it. Installing either is a deliberate step: from a source you have read, on purpose — not as part of a routine run.
+- **The catalog entry is the description and nothing else.** `skills-ref to-prompt` prints exactly what every runtime puts in front of the model, which is the cheapest way to see what the skill is competing with among the other skills.
 - **Discovery paths.** The cross-agent convention is `<project>/.agents/skills/` and `~/.agents/skills/`; per-runtime paths are `.claude/skills/`, `.github/skills/` (Copilot/VS Code), `.cursor/skills/`, `.gemini/skills/`, `.codex/skills/` — project-level, and the same name under `~/.<runtime>/`. Codex also reads `~/.codex/skills/` and `/etc/codex/skills`; Gemini CLI loads a workspace skill only from a trusted folder. An install is a copy or a symlink of the skill directory.
 - **What is loaded when.** The three tiers hold everywhere: `name` + `description` in the catalog, the body on activation, `reference/*.md` on demand. Gemini CLI asks for consent before injecting the body and then grants access to the whole skill directory; Copilot/VS Code need `chat.agent.skills` enabled. Only `SKILL.md` is required — the extra folders are a convention, and both spellings (`reference/`, `references/`) appear in vendor documentation.
 - **Activation does not carry across turns everywhere.** Codex takes the skill for the turn that named or matched it and drops it afterwards, so a rule that has to hold over a long session has to be re-invoked. That is why the description, not the body, carries every trigger the skill should answer to.
