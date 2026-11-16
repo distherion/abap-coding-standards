@@ -14,6 +14,8 @@
 
 - **[info]** Types `d`/`t` in arithmetic behave like `i`: `d` = days since 01.01.0001, `t` = seconds since midnight. A direct date difference gives days: `DATA(days) = lv_date2 - lv_date1.` The time stamp in 7.50 is `timestamp`/`timestampl` — **does not exist:** `utclong` and the DDIC types `DATN`/`TIMN` (from 7.54 — see `style.md`, "Version").
 
+- **[P3]** A date field compared with a shorter character operand — `begda = '2024'`, `sy-datum(4) = '2026'` — is a working year test, not a defect: the operands follow the length adjustment of character-like comparison, which is owned by `strings.md` (`char-compare-length-adjust`).
+
 - **[P1]** Time difference across midnight — take `MOD 86400`, otherwise a negative result: `DATA(diff) = ( lv_time2 - lv_time1 ) MOD 86400.` <!-- rule: time-diff-across-midnight -->
 
 - **[P3]** Day of week (1 = Monday): do not compute via `lv_date MOD 7`. Compute via the difference from a known Monday (`20240101`): `DATA(wd) = ( lv_date - CONV d( '20240101' ) ) MOD 7 + 1.` (the non-negative remainder — `numbers.md`, `div-mod-nonneg-remainder`). Or FM `DAY_IN_WEEK` (`datum` → `wotnr`, 1 = Monday).

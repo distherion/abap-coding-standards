@@ -6,7 +6,10 @@
 - **[P0]** Never concatenate external input (UI fields, RFC parameters, files) into a SQL string — SQL injection. A dynamic SQL fragment is safe only when it is a literal in the code or has passed a whitelist check; a value goes in as a host variable (`@`) or an ADBC `SET_PARAM`, never as concatenated text. <!-- rule: no-sql-string-concat -->
   ```abap
   " wrong — the input becomes part of the statement text
-  SELECT pernr FROM pa0001 WHERE pernr = '" && lv_pernr && "' INTO TABLE @lt_pa0001.
+  DATA(lv_where) = |pernr = '{ lv_pernr }'|.
+  SELECT pernr FROM pa0001
+    WHERE (lv_where)
+    INTO TABLE @lt_pa0001.
 
   " right — a host variable, the statement text stays constant
   SELECT pernr FROM pa0001 WHERE pernr = @lv_pernr INTO TABLE @lt_pa0001.

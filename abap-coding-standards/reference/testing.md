@@ -14,7 +14,7 @@
 
 ## Test classes
 
-- **[P3]** A local test class in the test-include of the class under test (found on refactor, run in one click). Component-/integration tests — in concrete local test classes (not a `$TMP` report); global `FOR TESTING` classes are for reusable helpers or an abstract base (fixtures/asserts) shared via inheritance by executable test classes — a global **`ABSTRACT`** test class itself is not instantiated by the ABAP Unit framework, so its own test methods would never run.
+- **[P3]** A local test class in the test-include of the class under test (found on refactor, run in one click). Component-/integration tests — in concrete local test classes (not a `$TMP` report); global `FOR TESTING` classes can provide reusable helpers or an abstract base (fixtures/asserts) shared via inheritance by executable test classes. An **`ABSTRACT`** class is not instantiated as a test class itself; do not conclude that inherited test methods can never run — they may be executed as part of a concrete test subclass.
 - **[P3]** Name the test class by purpose/setup, not "test": `ltc_<public-method>` or `ltc_<common setup>`. Anti-patterns: `ltc_test`, repeating the name of the class under test.
 - **[P3]** Common helper methods (custom asserts, data factories) — in a helper class (`lth_*`), accessed via inheritance or delegation, do not duplicate in each test.
 - **[P2]** Mandatory additions: `FOR TESTING`, `RISK LEVEL HARMLESS` (or `DANGEROUS` — only if the test actually writes to the DB/external systems, in a unit — almost never), `DURATION SHORT`/`MEDIUM`/`LONG`.
