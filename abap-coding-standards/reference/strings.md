@@ -11,7 +11,7 @@
 
 - **[P3]** Do not show system fields in the UI (`sy-uzeit`, `sy-datum`, `sy-host`, `sy-sysid`, `sy-dbsys`, …) — technical values; only business data reaches the user.
 
-- **[P2]** No `CONSTANTS` for user-facing text — text constants cannot be translated (SE63), unlike OTR (see `errors.md`).
+- **[P2]** Avoid creating constants for text strings: do not wrap human-readable text in `CONSTANTS` (`CONSTANTS BEGIN OF c_msg ... VALUE 'Text'`) — pass the literal directly in the popup/dialog/message call, following the project's convention for those calls. Text that must be translatable belongs in a text symbol (`TEXT-xxx`), a message class or OTR (see `errors.md`), not in a `CONSTANTS` declaration. A constant for a technical value with semantics (file extension, suffix, status code, key) is not a text string and stays allowed.
 
 - **[P3]** Long texts (SAPscript/SO10) — via `READ_TEXT` (`id`/`language`/`name`/`object` → `TABLES lines`) and `SAVE_TEXT`/`INIT_TEXT`/`CREATE_TEXT`; do not read/store raw text tables by hand.
 
